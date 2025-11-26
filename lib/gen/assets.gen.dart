@@ -28,12 +28,16 @@ class $AssetsIconsGen {
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
-  /// File path: assets/images/loginImage.png
-  AssetGenImage get loginImage =>
-      const AssetGenImage('assets/images/loginImage.png');
+  /// File path: assets/images/login_img.png
+  AssetGenImage get loginImg =>
+      const AssetGenImage('assets/images/login_img.png');
+
+  /// File path: assets/images/sign_up_img.png
+  AssetGenImage get signUpImg =>
+      const AssetGenImage('assets/images/sign_up_img.png');
 
   /// List of all assets
-  List<AssetGenImage> get values => [loginImage];
+  List<AssetGenImage> get values => [loginImg, signUpImg];
 }
 
 class Assets {

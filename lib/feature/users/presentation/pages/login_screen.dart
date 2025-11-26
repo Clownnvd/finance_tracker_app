@@ -1,5 +1,5 @@
 // Thay đổi đường dẫn import này cho đúng với project của bạn
-import 'package:finance_tracking_app/feature/users/presentation/widgets/CustomTextField.dart';
+import 'package:finance_tracking_app/feature/users/presentation/widgets/custom_text_field.dart';
 import 'package:finance_tracking_app/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
@@ -26,9 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Khởi tạo Widget ảnh từ Assets Gen
-    // Đảm bảo Assets.images.loginImage tồn tại trong file assets.gen.dart
-    Widget loginImage = Assets.images.loginImage.image(
+    Widget loginImage = Assets.images.loginImg.image(
       width: 240,
       height: 120,
       fit: BoxFit.contain, // Thêm fit để ảnh không bị méo
