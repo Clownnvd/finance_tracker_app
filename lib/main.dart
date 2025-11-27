@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:finance_tracking_app/feature/users/presentation/pages/welcome_screen.dart';
+import 'package:finance_tracking_app/core/router/app_router.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,9 +33,10 @@ class MyApp extends StatelessWidget {
         colorSchemeSeed: Colors.green,
       ),
 
-      home: const SafeArea(
-        child: WelcomeScreen(),
-      ),
+      // dùng router thay cho home
+      navigatorKey: AppRouter.navigatorKey,
+      initialRoute: AppRoutes.welcome,
+      onGenerateRoute: AppRouter.onGenerateRoute,
     );
   }
 }

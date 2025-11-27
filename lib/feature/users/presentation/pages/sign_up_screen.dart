@@ -1,6 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:finance_tracking_app/feature/users/presentation/widgets/custom_text_field.dart';
 import 'package:finance_tracking_app/gen/assets.gen.dart';
-import 'package:flutter/material.dart';
+import 'package:finance_tracking_app/core/router/app_router.dart'; 
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -20,12 +21,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _showConfirmPassword = false;
 
   @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    Widget sign_up_image = Assets.images.signUpImg.image(
+    final signUpImage = Assets.images.signUpImg.image(
       width: 240,
       height: 120,
       fit: BoxFit.contain, // Thêm fit để ảnh không bị méo
     );
+
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -41,7 +52,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                sign_up_image,
+                signUpImage,
 
                 const SizedBox(height: 32),
 
@@ -120,6 +131,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     onPressed: () {
                       // TODO: handle sign up
+                      // Ví dụ sau này: Navigator.pushReplacementNamed(context, AppRoutes.welcome);
                     },
                     child: const Text(
                       'Sign Up',
@@ -141,7 +153,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     const Text("Already have an account? "),
                     GestureDetector(
                       onTap: () {
-                        // TODO: chuyển sang màn Login
+                        // Chuyển sang màn Login bằng router
+                        Navigator.pushNamed(context, AppRoutes.login);
                       },
                       child: const Text(
                         'Login',

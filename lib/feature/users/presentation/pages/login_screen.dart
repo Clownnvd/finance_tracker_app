@@ -1,7 +1,7 @@
-// Thay đổi đường dẫn import này cho đúng với project của bạn
+import 'package:flutter/material.dart';
 import 'package:finance_tracking_app/feature/users/presentation/widgets/custom_text_field.dart';
 import 'package:finance_tracking_app/gen/assets.gen.dart';
-import 'package:flutter/material.dart';
+import 'package:finance_tracking_app/core/router/app_router.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,7 +13,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   // Biến trạng thái ẩn/hiện mật khẩu
   bool _isPasswordHidden = true;
 
@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget loginImage = Assets.images.loginImg.image(
+    final loginImage = Assets.images.loginImg.image(
       width: 240,
       height: 120,
       fit: BoxFit.contain, // Thêm fit để ảnh không bị méo
@@ -76,11 +76,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 hintText: 'Password',
                 obscureText: _isPasswordHidden,
                 keyboardType: TextInputType.visiblePassword,
-                // Logic icon mắt thần
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _isPasswordHidden 
-                        ? Icons.visibility_off 
+                    _isPasswordHidden
+                        ? Icons.visibility_off
                         : Icons.visibility,
                     color: Colors.grey,
                   ),
@@ -97,9 +96,11 @@ class _LoginScreenState extends State<LoginScreen> {
               // --- LOGIN BUTTON ---
               ElevatedButton(
                 onPressed: () {
-                  // Xử lý đăng nhập
-                  print("Email: ${_emailController.text}");
-                  print("Pass: ${_passwordController.text}");
+                  // TODO: xử lý đăng nhập + điều hướng nếu cần
+                  debugPrint("Email: ${_emailController.text}");
+                  debugPrint("Pass: ${_passwordController.text}");
+                  // Ví dụ sau này:
+                  // Navigator.pushReplacementNamed(context, AppRoutes.home);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFF77D0E), // Màu cam
@@ -131,7 +132,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      // Điều hướng sang trang Register
+                      // Điều hướng sang trang Register bằng router
+                      Navigator.pushNamed(context, AppRoutes.signUp);
                     },
                     child: const Text(
                       "Register",
@@ -144,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 20), // Khoảng cách dưới cùng
             ],
           ),
