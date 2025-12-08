@@ -660,3 +660,1488 @@ class SvgGenImage {
 }
 
 \n
+===== C:\Works\finance_tracking_app\lib\code_report.txt =====
+===== C:\Works\finance_tracking_app\lib\main.dart =====
+import 'package:flutter/material.dart';
+import 'package:finance_tracking_app/feature/users/presentation/pages/welcome_screen.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+
+      // đảm bảo có Directionality + Theme + textScale 
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(1.0),
+          ),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: child!,
+          ),
+        );
+      },
+
+      // theme mặc định đầy đủ
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.green,
+      ),
+
+      home: const SafeArea(
+        child: WelcomeScreen(),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\router\app_router.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\login_screen.dart =====
+// Thay đổi đường dẫn import này cho đúng với project của bạn
+import 'package:finance_tracking_app/feature/users/presentation/widgets/custom_text_field.dart';
+import 'package:finance_tracking_app/gen/assets.gen.dart';
+import 'package:flutter/material.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  
+  // Biến trạng thái ẩn/hiện mật khẩu
+  bool _isPasswordHidden = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget loginImage = Assets.images.loginImg.image(
+      width: 240,
+      height: 120,
+      fit: BoxFit.contain, // Thêm fit để ảnh không bị méo
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.white, // Thêm màu nền trắng cho sạch
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 40), // Thêm khoảng cách đầu trang
+
+              const Text(
+                'Welcome to Personal\nFinance Tracker',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Hiển thị ảnh
+              Center(child: loginImage),
+
+              const SizedBox(height: 32),
+
+              // --- EMAIL FIELD ---
+              CustomTextfield(
+                controller: _emailController,
+                hintText: 'Email',
+                obscureText: false, // Email không cần ẩn ký tự
+                keyboardType: TextInputType.emailAddress,
+              ),
+
+              const SizedBox(height: 16),
+
+              // --- PASSWORD FIELD ---
+              CustomTextfield(
+                controller: _passwordController,
+                hintText: 'Password',
+                obscureText: _isPasswordHidden,
+                keyboardType: TextInputType.visiblePassword,
+                // Logic icon mắt thần
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordHidden 
+                        ? Icons.visibility_off 
+                        : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordHidden = !_isPasswordHidden;
+                    });
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // --- LOGIN BUTTON ---
+              ElevatedButton(
+                onPressed: () {
+                  // Xử lý đăng nhập
+                  print("Email: ${_emailController.text}");
+                  print("Pass: ${_passwordController.text}");
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF77D0E), // Màu cam
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: const Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // --- FOOTER REGISTER ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Don't have an account? ",
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      // Điều hướng sang trang Register
+                    },
+                    child: const Text(
+                      "Register",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 20), // Khoảng cách dưới cùng
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\sign_up_screen.dart =====
+import 'package:finance_tracking_app/feature/users/presentation/widgets/custom_text_field.dart';
+import 'package:finance_tracking_app/gen/assets.gen.dart';
+import 'package:flutter/material.dart';
+
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget sign_up_image = Assets.images.signUpImg.image(
+      width: 240,
+      height: 120,
+      fit: BoxFit.contain, // Thêm fit để ảnh không bị méo
+    );
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                const Text(
+                  'Sign Up',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+
+                sign_up_image,
+
+                const SizedBox(height: 32),
+
+                // Full Name
+                CustomTextfield(
+                  hintText: 'Full Name',
+                  obscureText: false,
+                  controller: _fullNameController,
+                  keyboardType: TextInputType.name,
+                ),
+                const SizedBox(height: 16),
+
+                // Email
+                CustomTextfield(
+                  hintText: 'Email',
+                  obscureText: false,
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+
+                // Password
+                CustomTextfield(
+                  hintText: 'Password',
+                  obscureText: !_showPassword,
+                  controller: _passwordController,
+                  keyboardType: TextInputType.visiblePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Confirm password
+                CustomTextfield(
+                  hintText: 'Confirm password',
+                  obscureText: !_showConfirmPassword,
+                  controller: _confirmPasswordController,
+                  keyboardType: TextInputType.visiblePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showConfirmPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showConfirmPassword = !_showConfirmPassword;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Nút Sign Up
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      // TODO: handle sign up
+                    },
+                    child: const Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Text dưới cùng
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Already have an account? "),
+                    GestureDetector(
+                      onTap: () {
+                        // TODO: chuyển sang màn Login
+                      },
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\welcome_screen.dart =====
+import 'package:finance_tracking_app/gen/assets.gen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+
+class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget wallet = Assets.icons.walletSolid.svg(
+      width: 240,
+      height: 120,
+      colorFilter: const ColorFilter.mode(Colors.green, BlendMode.srcIn)
+    );
+    return Scaffold(
+      body: Column(
+        children: [
+          wallet,
+          const Text('Welcome'),
+          const SizedBox(height: 12),
+          const Text('Take control of your finances with us.'),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: () {}, child: Text('Get Started')),
+        ],
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\presentation\widgets\custom_text_field.dart =====
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
+class CustomTextfield extends StatelessWidget {
+  final String hintText;
+  final bool obscureText;
+  final Widget? suffixIcon;
+  final TextEditingController? controller;
+  final TextInputType keyboardType;
+
+  const CustomTextfield({
+    super.key,
+    required this.hintText,
+    required this.obscureText,
+    this.suffixIcon,
+    this.controller,
+    required this.keyboardType,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(color: Colors.grey[500]),
+        suffixIcon: suffixIcon,
+        contentPadding: const EdgeInsets.all(16),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.grey)
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.orange,
+            width: 2
+          )
+        )
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\gen\assets.gen.dart =====
+// dart format width=80
+
+/// GENERATED CODE - DO NOT MODIFY BY HAND
+/// *****************************************************
+///  FlutterGen
+/// *****************************************************
+
+// coverage:ignore-file
+// ignore_for_file: type=lint
+// ignore_for_file: deprecated_member_use,directives_ordering,implicit_dynamic_list_literal,unnecessary_import
+
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart' as _svg;
+import 'package:vector_graphics/vector_graphics.dart' as _vg;
+
+class $AssetsIconsGen {
+  const $AssetsIconsGen();
+
+  /// File path: assets/icons/wallet-solid.svg
+  SvgGenImage get walletSolid =>
+      const SvgGenImage('assets/icons/wallet-solid.svg');
+
+  /// List of all assets
+  List<SvgGenImage> get values => [walletSolid];
+}
+
+class $AssetsImagesGen {
+  const $AssetsImagesGen();
+
+  /// File path: assets/images/login_img.png
+  AssetGenImage get loginImg =>
+      const AssetGenImage('assets/images/login_img.png');
+
+  /// File path: assets/images/sign_up_img.png
+  AssetGenImage get signUpImg =>
+      const AssetGenImage('assets/images/sign_up_img.png');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [loginImg, signUpImg];
+}
+
+class Assets {
+  const Assets._();
+
+  static const $AssetsIconsGen icons = $AssetsIconsGen();
+  static const $AssetsImagesGen images = $AssetsImagesGen();
+}
+
+class AssetGenImage {
+  const AssetGenImage(
+    this._assetName, {
+    this.size,
+    this.flavors = const {},
+    this.animation,
+  });
+
+  final String _assetName;
+
+  final Size? size;
+  final Set<String> flavors;
+  final AssetGenImageAnimation? animation;
+
+  Image image({
+    Key? key,
+    AssetBundle? bundle,
+    ImageFrameBuilder? frameBuilder,
+    ImageErrorWidgetBuilder? errorBuilder,
+    String? semanticLabel,
+    bool excludeFromSemantics = false,
+    double? scale,
+    double? width,
+    double? height,
+    Color? color,
+    Animation<double>? opacity,
+    BlendMode? colorBlendMode,
+    BoxFit? fit,
+    AlignmentGeometry alignment = Alignment.center,
+    ImageRepeat repeat = ImageRepeat.noRepeat,
+    Rect? centerSlice,
+    bool matchTextDirection = false,
+    bool gaplessPlayback = true,
+    bool isAntiAlias = false,
+    String? package,
+    FilterQuality filterQuality = FilterQuality.medium,
+    int? cacheWidth,
+    int? cacheHeight,
+  }) {
+    return Image.asset(
+      _assetName,
+      key: key,
+      bundle: bundle,
+      frameBuilder: frameBuilder,
+      errorBuilder: errorBuilder,
+      semanticLabel: semanticLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      scale: scale,
+      width: width,
+      height: height,
+      color: color,
+      opacity: opacity,
+      colorBlendMode: colorBlendMode,
+      fit: fit,
+      alignment: alignment,
+      repeat: repeat,
+      centerSlice: centerSlice,
+      matchTextDirection: matchTextDirection,
+      gaplessPlayback: gaplessPlayback,
+      isAntiAlias: isAntiAlias,
+      package: package,
+      filterQuality: filterQuality,
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
+    );
+  }
+
+  ImageProvider provider({AssetBundle? bundle, String? package}) {
+    return AssetImage(_assetName, bundle: bundle, package: package);
+  }
+
+  String get path => _assetName;
+
+  String get keyName => _assetName;
+}
+
+class AssetGenImageAnimation {
+  const AssetGenImageAnimation({
+    required this.isAnimation,
+    required this.duration,
+    required this.frames,
+  });
+
+  final bool isAnimation;
+  final Duration duration;
+  final int frames;
+}
+
+class SvgGenImage {
+  const SvgGenImage(this._assetName, {this.size, this.flavors = const {}})
+    : _isVecFormat = false;
+
+  const SvgGenImage.vec(this._assetName, {this.size, this.flavors = const {}})
+    : _isVecFormat = true;
+
+  final String _assetName;
+  final Size? size;
+  final Set<String> flavors;
+  final bool _isVecFormat;
+
+  _svg.SvgPicture svg({
+    Key? key,
+    bool matchTextDirection = false,
+    AssetBundle? bundle,
+    String? package,
+    double? width,
+    double? height,
+    BoxFit fit = BoxFit.contain,
+    AlignmentGeometry alignment = Alignment.center,
+    bool allowDrawingOutsideViewBox = false,
+    WidgetBuilder? placeholderBuilder,
+    String? semanticsLabel,
+    bool excludeFromSemantics = false,
+    _svg.SvgTheme? theme,
+    _svg.ColorMapper? colorMapper,
+    ColorFilter? colorFilter,
+    Clip clipBehavior = Clip.hardEdge,
+    @deprecated Color? color,
+    @deprecated BlendMode colorBlendMode = BlendMode.srcIn,
+    @deprecated bool cacheColorFilter = false,
+  }) {
+    final _svg.BytesLoader loader;
+    if (_isVecFormat) {
+      loader = _vg.AssetBytesLoader(
+        _assetName,
+        assetBundle: bundle,
+        packageName: package,
+      );
+    } else {
+      loader = _svg.SvgAssetLoader(
+        _assetName,
+        assetBundle: bundle,
+        packageName: package,
+        theme: theme,
+        colorMapper: colorMapper,
+      );
+    }
+    return _svg.SvgPicture(
+      loader,
+      key: key,
+      matchTextDirection: matchTextDirection,
+      width: width,
+      height: height,
+      fit: fit,
+      alignment: alignment,
+      allowDrawingOutsideViewBox: allowDrawingOutsideViewBox,
+      placeholderBuilder: placeholderBuilder,
+      semanticsLabel: semanticsLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      colorFilter:
+          colorFilter ??
+          (color == null ? null : ColorFilter.mode(color, colorBlendMode)),
+      clipBehavior: clipBehavior,
+      cacheColorFilter: cacheColorFilter,
+    );
+  }
+
+  String get path => _assetName;
+
+  String get keyName => _assetName;
+}
+
+\n
+
+\n
+===== C:\Works\finance_tracking_app\lib\main.dart =====
+import 'package:flutter/material.dart';
+import 'package:finance_tracking_app/core/router/app_router.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+
+      // đảm bảo có Directionality + Theme + textScale 
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(1.0),
+          ),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: child!,
+          ),
+        );
+      },
+
+      // theme mặc định đầy đủ
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.green,
+      ),
+
+      // dùng router thay cho home
+      navigatorKey: AppRouter.navigatorKey,
+      initialRoute: AppRoutes.welcome,
+      onGenerateRoute: AppRouter.onGenerateRoute,
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\router\app_router.dart =====
+import 'package:flutter/material.dart';
+
+import 'package:finance_tracking_app/feature/users/auth/presentation/pages/welcome_screen.dart';
+import 'package:finance_tracking_app/feature/users/auth/presentation/pages/login_screen.dart';
+import 'package:finance_tracking_app/feature/users/auth/presentation/pages/sign_up_screen.dart';
+
+class AppRoutes {
+  static const String welcome = '/';
+  static const String login = '/login';
+  static const String signUp = '/sign-up';
+}
+
+class AppRouter {
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case AppRoutes.welcome:
+        return MaterialPageRoute(
+          builder: (_) => const WelcomeScreen(),
+          settings: settings,
+        );
+
+      case AppRoutes.login:
+        return MaterialPageRoute(
+          builder: (_) => const LoginScreen(),
+          settings: settings,
+        );
+
+      case AppRoutes.signUp:
+        return MaterialPageRoute(
+          builder: (_) => const SignUpScreen(),
+          settings: settings,
+        );
+
+      default:
+        return MaterialPageRoute(
+          builder: (_) => const Scaffold(
+            body: Center(
+              child: Text('Route not found'),
+            ),
+          ),
+          settings: settings,
+        );
+    }
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\cubit\auth_cubit.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\cubit\auth_state.dart =====
+import 'package:equatable/equatable.dart';
+
+sealed class AuthState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+class AuthInitial extends AuthState {}
+
+class AuthLoading extends AuthState {}
+
+class AuthSuccess extends AuthState {
+  final UserModel user;
+  AuthSuccess(this.user);
+
+  @override
+  List<Object?> get props => [user];
+}
+
+class AuthFailure extends AuthState {
+  final String message;
+  AuthFailure(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\login_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:finance_tracking_app/shared/widgets/button/custom_text_field.dart';
+import 'package:finance_tracking_app/gen/assets.gen.dart';
+import 'package:finance_tracking_app/core/router/app_router.dart'; 
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  bool _isPasswordHidden = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loginImage = Assets.images.loginImg.image(
+      width: 240,
+      height: 120,
+      fit: BoxFit.contain, 
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.white, 
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 40), 
+
+              const Text(
+                'Welcome to Personal\nFinance Tracker',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              Center(child: loginImage),
+
+              const SizedBox(height: 32),
+
+              CustomTextfield(
+                controller: _emailController,
+                hintText: 'Email',
+                obscureText: false, 
+                keyboardType: TextInputType.emailAddress,
+              ),
+
+              const SizedBox(height: 16),
+
+              CustomTextfield(
+                controller: _passwordController,
+                hintText: 'Password',
+                obscureText: _isPasswordHidden,
+                keyboardType: TextInputType.visiblePassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordHidden
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordHidden = !_isPasswordHidden;
+                    });
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              ElevatedButton(
+                onPressed: () {
+                  debugPrint("Email: ${_emailController.text}");
+                  debugPrint("Pass: ${_passwordController.text}");
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF77D0E),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: const Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Don't have an account? ",
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, AppRoutes.signUp);
+                    },
+                    child: const Text(
+                      "Register",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20), // Khoảng cách dưới cùng
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\sign_up_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:finance_tracking_app/shared/widgets/button/custom_text_field.dart';
+import 'package:finance_tracking_app/gen/assets.gen.dart';
+import 'package:finance_tracking_app/core/router/app_router.dart'; 
+
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final signUpImage = Assets.images.signUpImg.image(
+      width: 240,
+      height: 120,
+      fit: BoxFit.contain,
+    );
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                const Text(
+                  'Sign Up',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+
+                signUpImage,
+
+                const SizedBox(height: 32),
+
+                CustomTextfield(
+                  hintText: 'Full Name',
+                  obscureText: false,
+                  controller: _fullNameController,
+                  keyboardType: TextInputType.name,
+                ),
+                const SizedBox(height: 16),
+
+                CustomTextfield(
+                  hintText: 'Email',
+                  obscureText: false,
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+
+                CustomTextfield(
+                  hintText: 'Password',
+                  obscureText: !_showPassword,
+                  controller: _passwordController,
+                  keyboardType: TextInputType.visiblePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                CustomTextfield(
+                  hintText: 'Confirm password',
+                  obscureText: !_showConfirmPassword,
+                  controller: _confirmPasswordController,
+                  keyboardType: TextInputType.visiblePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showConfirmPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showConfirmPassword = !_showConfirmPassword;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                    },
+                    child: const Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Already have an account? "),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, AppRoutes.login);
+                      },
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\welcome_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:finance_tracking_app/gen/assets.gen.dart';
+import 'package:finance_tracking_app/core/router/app_router.dart';
+
+class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final wallet = Assets.icons.walletSolid.svg(
+      width: 200,
+      height: 200,
+      colorFilter: const ColorFilter.mode(
+        Colors.green,
+        BlendMode.srcIn,
+      ),
+    );
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                wallet,
+
+                const SizedBox(height: 24),
+
+                const Text(
+                  'Welcome',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                const Text(
+                  'Take control of your finances with us.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRoutes.login);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Get Started',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\gen\assets.gen.dart =====
+// dart format width=80
+
+/// GENERATED CODE - DO NOT MODIFY BY HAND
+/// *****************************************************
+///  FlutterGen
+/// *****************************************************
+
+// coverage:ignore-file
+// ignore_for_file: type=lint
+// ignore_for_file: deprecated_member_use,directives_ordering,implicit_dynamic_list_literal,unnecessary_import
+
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart' as _svg;
+import 'package:vector_graphics/vector_graphics.dart' as _vg;
+
+class $AssetsIconsGen {
+  const $AssetsIconsGen();
+
+  /// File path: assets/icons/wallet-solid.svg
+  SvgGenImage get walletSolid =>
+      const SvgGenImage('assets/icons/wallet-solid.svg');
+
+  /// List of all assets
+  List<SvgGenImage> get values => [walletSolid];
+}
+
+class $AssetsImagesGen {
+  const $AssetsImagesGen();
+
+  /// File path: assets/images/login_img.png
+  AssetGenImage get loginImg =>
+      const AssetGenImage('assets/images/login_img.png');
+
+  /// File path: assets/images/sign_up_img.png
+  AssetGenImage get signUpImg =>
+      const AssetGenImage('assets/images/sign_up_img.png');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [loginImg, signUpImg];
+}
+
+class Assets {
+  const Assets._();
+
+  static const $AssetsIconsGen icons = $AssetsIconsGen();
+  static const $AssetsImagesGen images = $AssetsImagesGen();
+}
+
+class AssetGenImage {
+  const AssetGenImage(
+    this._assetName, {
+    this.size,
+    this.flavors = const {},
+    this.animation,
+  });
+
+  final String _assetName;
+
+  final Size? size;
+  final Set<String> flavors;
+  final AssetGenImageAnimation? animation;
+
+  Image image({
+    Key? key,
+    AssetBundle? bundle,
+    ImageFrameBuilder? frameBuilder,
+    ImageErrorWidgetBuilder? errorBuilder,
+    String? semanticLabel,
+    bool excludeFromSemantics = false,
+    double? scale,
+    double? width,
+    double? height,
+    Color? color,
+    Animation<double>? opacity,
+    BlendMode? colorBlendMode,
+    BoxFit? fit,
+    AlignmentGeometry alignment = Alignment.center,
+    ImageRepeat repeat = ImageRepeat.noRepeat,
+    Rect? centerSlice,
+    bool matchTextDirection = false,
+    bool gaplessPlayback = true,
+    bool isAntiAlias = false,
+    String? package,
+    FilterQuality filterQuality = FilterQuality.medium,
+    int? cacheWidth,
+    int? cacheHeight,
+  }) {
+    return Image.asset(
+      _assetName,
+      key: key,
+      bundle: bundle,
+      frameBuilder: frameBuilder,
+      errorBuilder: errorBuilder,
+      semanticLabel: semanticLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      scale: scale,
+      width: width,
+      height: height,
+      color: color,
+      opacity: opacity,
+      colorBlendMode: colorBlendMode,
+      fit: fit,
+      alignment: alignment,
+      repeat: repeat,
+      centerSlice: centerSlice,
+      matchTextDirection: matchTextDirection,
+      gaplessPlayback: gaplessPlayback,
+      isAntiAlias: isAntiAlias,
+      package: package,
+      filterQuality: filterQuality,
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
+    );
+  }
+
+  ImageProvider provider({AssetBundle? bundle, String? package}) {
+    return AssetImage(_assetName, bundle: bundle, package: package);
+  }
+
+  String get path => _assetName;
+
+  String get keyName => _assetName;
+}
+
+class AssetGenImageAnimation {
+  const AssetGenImageAnimation({
+    required this.isAnimation,
+    required this.duration,
+    required this.frames,
+  });
+
+  final bool isAnimation;
+  final Duration duration;
+  final int frames;
+}
+
+class SvgGenImage {
+  const SvgGenImage(this._assetName, {this.size, this.flavors = const {}})
+    : _isVecFormat = false;
+
+  const SvgGenImage.vec(this._assetName, {this.size, this.flavors = const {}})
+    : _isVecFormat = true;
+
+  final String _assetName;
+  final Size? size;
+  final Set<String> flavors;
+  final bool _isVecFormat;
+
+  _svg.SvgPicture svg({
+    Key? key,
+    bool matchTextDirection = false,
+    AssetBundle? bundle,
+    String? package,
+    double? width,
+    double? height,
+    BoxFit fit = BoxFit.contain,
+    AlignmentGeometry alignment = Alignment.center,
+    bool allowDrawingOutsideViewBox = false,
+    WidgetBuilder? placeholderBuilder,
+    String? semanticsLabel,
+    bool excludeFromSemantics = false,
+    _svg.SvgTheme? theme,
+    _svg.ColorMapper? colorMapper,
+    ColorFilter? colorFilter,
+    Clip clipBehavior = Clip.hardEdge,
+    @deprecated Color? color,
+    @deprecated BlendMode colorBlendMode = BlendMode.srcIn,
+    @deprecated bool cacheColorFilter = false,
+  }) {
+    final _svg.BytesLoader loader;
+    if (_isVecFormat) {
+      loader = _vg.AssetBytesLoader(
+        _assetName,
+        assetBundle: bundle,
+        packageName: package,
+      );
+    } else {
+      loader = _svg.SvgAssetLoader(
+        _assetName,
+        assetBundle: bundle,
+        packageName: package,
+        theme: theme,
+        colorMapper: colorMapper,
+      );
+    }
+    return _svg.SvgPicture(
+      loader,
+      key: key,
+      matchTextDirection: matchTextDirection,
+      width: width,
+      height: height,
+      fit: fit,
+      alignment: alignment,
+      allowDrawingOutsideViewBox: allowDrawingOutsideViewBox,
+      placeholderBuilder: placeholderBuilder,
+      semanticsLabel: semanticsLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      colorFilter:
+          colorFilter ??
+          (color == null ? null : ColorFilter.mode(color, colorBlendMode)),
+      clipBehavior: clipBehavior,
+      cacheColorFilter: cacheColorFilter,
+    );
+  }
+
+  String get path => _assetName;
+
+  String get keyName => _assetName;
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\ui_kit.dart =====
+library ui_kit;
+
+export 'button/primary_button.dart';
+export 'button/secondary_button.dart';
+export 'button/icon_button.dart';
+export 'button/loading_button.dart';
+
+export 'input/app_text_field.dart';
+export 'input/app_password_field.dart';
+export 'input/amount_input.dart';
+export 'input/app_dropdown.dart'; 
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\custom_text_field.dart =====
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
+class CustomTextfield extends StatelessWidget {
+  final String hintText;
+  final bool obscureText;
+  final Widget? suffixIcon;
+  final TextEditingController? controller;
+  final TextInputType keyboardType;
+
+  const CustomTextfield({
+    super.key,
+    required this.hintText,
+    required this.obscureText,
+    this.suffixIcon,
+    this.controller,
+    required this.keyboardType,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(color: Colors.grey[500]),
+        suffixIcon: suffixIcon,
+        contentPadding: const EdgeInsets.all(16),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.grey)
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.orange,
+            width: 2
+          )
+        )
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\icon_button.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\loading_button.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\primary_button.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\secondary_button.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\input\amount_input.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\input\app_dropdown.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\input\app_password_field.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\input\app_text_field.dart =====
+\n

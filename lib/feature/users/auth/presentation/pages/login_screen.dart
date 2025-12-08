@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:finance_tracking_app/feature/users/presentation/widgets/custom_text_field.dart';
+import 'package:finance_tracking_app/shared/widgets/button/custom_text_field.dart';
 import 'package:finance_tracking_app/gen/assets.gen.dart';
 import 'package:finance_tracking_app/core/router/app_router.dart'; 
 
@@ -14,7 +14,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // Biến trạng thái ẩn/hiện mật khẩu
   bool _isPasswordHidden = true;
 
   @override
@@ -29,11 +28,11 @@ class _LoginScreenState extends State<LoginScreen> {
     final loginImage = Assets.images.loginImg.image(
       width: 240,
       height: 120,
-      fit: BoxFit.contain, // Thêm fit để ảnh không bị méo
+      fit: BoxFit.contain, 
     );
 
     return Scaffold(
-      backgroundColor: Colors.white, // Thêm màu nền trắng cho sạch
+      backgroundColor: Colors.white, 
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -41,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 40), // Thêm khoảng cách đầu trang
+              const SizedBox(height: 40), 
 
               const Text(
                 'Welcome to Personal\nFinance Tracker',
@@ -55,22 +54,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 32),
 
-              // Hiển thị ảnh
               Center(child: loginImage),
 
               const SizedBox(height: 32),
 
-              // --- EMAIL FIELD ---
               CustomTextfield(
                 controller: _emailController,
                 hintText: 'Email',
-                obscureText: false, // Email không cần ẩn ký tự
+                obscureText: false, 
                 keyboardType: TextInputType.emailAddress,
               ),
 
               const SizedBox(height: 16),
 
-              // --- PASSWORD FIELD ---
               CustomTextfield(
                 controller: _passwordController,
                 hintText: 'Password',
@@ -93,17 +89,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 24),
 
-              // --- LOGIN BUTTON ---
               ElevatedButton(
                 onPressed: () {
-                  // TODO: xử lý đăng nhập + điều hướng nếu cần
                   debugPrint("Email: ${_emailController.text}");
                   debugPrint("Pass: ${_passwordController.text}");
-                  // Ví dụ sau này:
-                  // Navigator.pushReplacementNamed(context, AppRoutes.home);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF77D0E), // Màu cam
+                  backgroundColor: const Color(0xFFF77D0E),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -121,8 +113,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
 
               const SizedBox(height: 24),
-
-              // --- FOOTER REGISTER ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -132,7 +122,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      // Điều hướng sang trang Register bằng router
                       Navigator.pushNamed(context, AppRoutes.signUp);
                     },
                     child: const Text(

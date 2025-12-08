@@ -48,8 +48,6 @@ class WelcomeScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 32),
-
-                // NÚT GET STARTED → Login
                 SizedBox(
                   width: double.infinity,
                   height: 52,
