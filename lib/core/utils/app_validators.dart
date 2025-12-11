@@ -1,33 +1,36 @@
+import 'package:email_validator/email_validator.dart';
+import 'package:finance_tracker_app/core/utils/validation_messages.dart';
+
 class AppValidators {
   static String? email(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Please enter your email';
+    final v = value?.trim();
+
+    if (v == null || v.isEmpty) {
+      return ValidationMessages.enterEmail;
     }
 
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value.trim())) {
-      return 'Email format is invalid';
+    if (!EmailValidator.validate(v)) {
+      return ValidationMessages.invalidEmail;
     }
 
     return null;
   }
 
- 
   static String? password(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter your password';
+      return ValidationMessages.enterPassword;
     }
 
     if (value.length < 8) {
-      return 'Password must be at least 8 characters';
+      return ValidationMessages.shortPassword;
     }
 
     if (!RegExp(r'[A-Za-z]').hasMatch(value)) {
-      return 'Password must include letter';
+      return ValidationMessages.passwordNeedLetter;
     }
 
     if (!RegExp(r'[0-9]').hasMatch(value)) {
-      return 'Password must include number';
+      return ValidationMessages.passwordNeedNumber;
     }
 
     return null;
@@ -35,11 +38,11 @@ class AppValidators {
 
   static String? confirmPassword(String? value, String password) {
     if (value == null || value.isEmpty) {
-      return 'Please confirm your password';
+      return ValidationMessages.confirmPassword;
     }
 
     if (value != password) {
-      return 'Password does not match';
+      return ValidationMessages.passwordMismatch;
     }
 
     return null;

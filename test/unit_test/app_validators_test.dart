@@ -1,4 +1,4 @@
-import 'package:finance_tracking_app/core/utils/app_validators.dart';
+import 'package:finance_tracker_app/core/utils/app_validators.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -62,15 +62,13 @@ void main() {
     });
 
     test('returns error when passwords do not match', () {
-      final result =
-          AppValidators.confirmPassword('abc12345', 'abc123456');
+      final result = AppValidators.confirmPassword('abc12345', 'abc123456');
 
       expect(result, 'Password does not match');
     });
 
     test('returns null when passwords match', () {
-      final result =
-          AppValidators.confirmPassword('abc12345', 'abc12345');
+      final result = AppValidators.confirmPassword('abc12345', 'abc12345');
 
       expect(result, isNull);
     });

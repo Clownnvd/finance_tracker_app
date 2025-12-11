@@ -1,6 +1,8 @@
-import 'package:finance_tracking_app/core/base/base_repository.dart';
-import 'package:finance_tracking_app/core/base/base_response.dart';
-import 'package:finance_tracking_app/feature/users/auth/data/models/auth_remote_data_source.dart';
+import 'package:finance_tracker_app/core/base/base_repository.dart';
+import 'package:finance_tracker_app/core/base/base_response.dart';
+import 'package:finance_tracker_app/core/error/exceptions.dart';
+import 'package:finance_tracker_app/feature/users/auth/data/models/auth_remote_data_source.dart';
+
 import '../../domain/entities/user_model.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -18,10 +20,12 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
       () => remote.login(email: email, password: password),
     );
 
-    if (!res.isSuccess) {
-      throw Exception(res.error);
+    if (res.hasError) {
+      // Rethrow đúng loại AppException (AuthException / NetworkException / ...)
+      throw res.error!;
     }
-    return res.data!;
+
+    return res.requireData;
   }
 
   @override
@@ -31,19 +35,22 @@ class AuthRepositoryImpl extends BaseRepository implements AuthRepository {
     required String fullName,
   }) async {
     final BaseResponse<UserModel> res = await safeCall(
-      () => remote.signup(
-        email: email,
-        password: password,
-        fullName: fullName,
-      ),
+      () => remote.signup(email: email, password: password, fullName: fullName),
     );
 
-    if (!res.isSuccess) {
-      throw Exception(res.error);
+    if (res.hasError) {
+      throw res.error!;
     }
-    return res.data!;
+
+    return res.requireData;
   }
 
   @override
-  Future<void> logout() => remote.logout();
+  Future<void> logout() async {
+    final res = await safeCall<void>(() => remote.logout());
+
+    if (res.hasError) {
+      throw res.error!;
+    }
+  }
 }

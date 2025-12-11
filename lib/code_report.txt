@@ -1,6 +1,6 @@
 ===== C:\Works\finance_tracking_app\lib\main.dart =====
 import 'package:flutter/material.dart';
-import 'package:finance_tracking_app/feature/users/presentation/pages/welcome_screen.dart';
+import 'package:finance_tracker_app/feature/users/presentation/pages/welcome_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,8 +46,8 @@ class MyApp extends StatelessWidget {
 \n
 ===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\login_screen.dart =====
 // Thay đổi đường dẫn import này cho đúng với project của bạn
-import 'package:finance_tracking_app/feature/users/presentation/widgets/custom_text_field.dart';
-import 'package:finance_tracking_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/feature/users/presentation/widgets/custom_text_field.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -202,8 +202,8 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 \n
 ===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\sign_up_screen.dart =====
-import 'package:finance_tracking_app/feature/users/presentation/widgets/custom_text_field.dart';
-import 'package:finance_tracking_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/feature/users/presentation/widgets/custom_text_field.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -369,7 +369,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
 \n
 ===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\welcome_screen.dart =====
-import 'package:finance_tracking_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -663,7 +663,7 @@ class SvgGenImage {
 ===== C:\Works\finance_tracking_app\lib\code_report.txt =====
 ===== C:\Works\finance_tracking_app\lib\main.dart =====
 import 'package:flutter/material.dart';
-import 'package:finance_tracking_app/feature/users/presentation/pages/welcome_screen.dart';
+import 'package:finance_tracker_app/feature/users/presentation/pages/welcome_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -709,8 +709,8 @@ class MyApp extends StatelessWidget {
 \n
 ===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\login_screen.dart =====
 // Thay đổi đường dẫn import này cho đúng với project của bạn
-import 'package:finance_tracking_app/feature/users/presentation/widgets/custom_text_field.dart';
-import 'package:finance_tracking_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/feature/users/presentation/widgets/custom_text_field.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -865,8 +865,8 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 \n
 ===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\sign_up_screen.dart =====
-import 'package:finance_tracking_app/feature/users/presentation/widgets/custom_text_field.dart';
-import 'package:finance_tracking_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/feature/users/presentation/widgets/custom_text_field.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -1032,7 +1032,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
 \n
 ===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\welcome_screen.dart =====
-import 'package:finance_tracking_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -1327,7 +1327,7 @@ class SvgGenImage {
 \n
 ===== C:\Works\finance_tracking_app\lib\main.dart =====
 import 'package:flutter/material.dart';
-import 'package:finance_tracking_app/core/router/app_router.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -1373,9 +1373,9 @@ class MyApp extends StatelessWidget {
 ===== C:\Works\finance_tracking_app\lib\core\router\app_router.dart =====
 import 'package:flutter/material.dart';
 
-import 'package:finance_tracking_app/feature/users/auth/presentation/pages/welcome_screen.dart';
-import 'package:finance_tracking_app/feature/users/auth/presentation/pages/login_screen.dart';
-import 'package:finance_tracking_app/feature/users/auth/presentation/pages/sign_up_screen.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/welcome_screen.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/login_screen.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/sign_up_screen.dart';
 
 class AppRoutes {
   static const String welcome = '/';
@@ -1454,9 +1454,9 @@ class AuthFailure extends AuthState {
 \n
 ===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\login_screen.dart =====
 import 'package:flutter/material.dart';
-import 'package:finance_tracking_app/shared/widgets/button/custom_text_field.dart';
-import 'package:finance_tracking_app/gen/assets.gen.dart';
-import 'package:finance_tracking_app/core/router/app_router.dart'; 
+import 'package:finance_tracker_app/shared/widgets/button/custom_text_field.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -1603,9 +1603,9 @@ class _LoginScreenState extends State<LoginScreen> {
 \n
 ===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\sign_up_screen.dart =====
 import 'package:flutter/material.dart';
-import 'package:finance_tracking_app/shared/widgets/button/custom_text_field.dart';
-import 'package:finance_tracking_app/gen/assets.gen.dart';
-import 'package:finance_tracking_app/core/router/app_router.dart'; 
+import 'package:finance_tracker_app/shared/widgets/button/custom_text_field.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart'; 
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -1773,8 +1773,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
 \n
 ===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\welcome_screen.dart =====
 import 'package:flutter/material.dart';
-import 'package:finance_tracking_app/gen/assets.gen.dart';
-import 'package:finance_tracking_app/core/router/app_router.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});

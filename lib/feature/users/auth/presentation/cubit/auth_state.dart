@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:finance_tracking_app/feature/users/auth/domain/entities/user_model.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 
 sealed class AuthState extends Equatable {
   @override

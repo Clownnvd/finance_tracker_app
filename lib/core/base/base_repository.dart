@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import '../error/exceptions.dart';
+import '../error/exception_mapper.dart';
 import 'base_response.dart';
 
 abstract class BaseRepository {
@@ -8,12 +9,16 @@ abstract class BaseRepository {
     try {
       final result = await call();
       return BaseResponse<T>(data: result);
-    } on AppException catch (e) {
-      log('AppException: ${e.message}', name: 'BaseRepository');
-      return BaseResponse<T>(error: e.message);
-    } catch (e) {
-      log('Unknown error: $e', name: 'BaseRepository');
-      return BaseResponse<T>(error: 'Unexpected error');
+    } catch (error, stack) {
+      final mapped = ExceptionMapper.map(error);
+
+      log(
+        'Repository Error: ${mapped.message}',
+        name: 'BaseRepository',
+        stackTrace: stack,
+      );
+
+      return BaseResponse<T>(error: mapped.message);
     }
   }
 }

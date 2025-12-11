@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class AppSpacing {
   static const double xs = 4;
   static const double sm = 8;
@@ -8,23 +9,15 @@ class AppSpacing {
   static const double xxl = 40;
 }
 
-
-/// =======================
-/// COLOR TOKENS
-/// =======================
 class AppColors {
-  // Brand colors (Primary)
-  // PFT: color.primary.default / light / dark :contentReference[oaicite:1]{index=1}
   static const Color primary = Color(0xFF1A73E8);
   static const Color primaryLight = Color(0xFFEEF5FF);
   static const Color primaryDark = Color(0xFF0F4FB8);
 
-  // Secondary
   static const Color secondary = Color(0xFFFF8A00);
   static const Color secondaryLight = Color(0xFFFFF3E6);
   static const Color secondaryDark = Color(0xFFCC6F00);
 
-  // Neutral scale
   static const Color neutral900 = Color(0xFF212121);
   static const Color neutral800 = Color(0xFF303030);
   static const Color neutral700 = Color(0xFF424242);
@@ -38,22 +31,17 @@ class AppColors {
 
   static const Color white = Colors.white;
 
-  // Semantic
   static const Color success = Color(0xFF4CAF50);
   static const Color error = Color(0xFFE53935);
   static const Color warning = Color(0xFFFFC107);
   static const Color info = Color(0xFF0288D1);
 }
 
-/// =======================
-/// TYPOGRAPHY TOKENS
-/// =======================
-/// Theo PFT typography: display, headline, title, body-lg, body, caption :contentReference[oaicite:2]{index=2}
 class AppTextStyles {
-  static const String _fontFamily = 'Inter'; // hoặc Roboto/RobotoFlex nếu bạn setup
+  static const String _font = 'Inter';
 
   static TextStyle get display => const TextStyle(
-        fontFamily: _fontFamily,
+        fontFamily: _font,
         fontSize: 34,
         fontWeight: FontWeight.w700,
         height: 1.2,
@@ -61,7 +49,7 @@ class AppTextStyles {
       );
 
   static TextStyle get headline => const TextStyle(
-        fontFamily: _fontFamily,
+        fontFamily: _font,
         fontSize: 24,
         fontWeight: FontWeight.w600,
         height: 1.3,
@@ -69,7 +57,7 @@ class AppTextStyles {
       );
 
   static TextStyle get title => const TextStyle(
-        fontFamily: _fontFamily,
+        fontFamily: _font,
         fontSize: 20,
         fontWeight: FontWeight.w600,
         height: 1.3,
@@ -77,7 +65,7 @@ class AppTextStyles {
       );
 
   static TextStyle get bodyLg => const TextStyle(
-        fontFamily: _fontFamily,
+        fontFamily: _font,
         fontSize: 16,
         fontWeight: FontWeight.w500,
         height: 1.4,
@@ -85,7 +73,7 @@ class AppTextStyles {
       );
 
   static TextStyle get body => const TextStyle(
-        fontFamily: _fontFamily,
+        fontFamily: _font,
         fontSize: 14,
         fontWeight: FontWeight.w400,
         height: 1.4,
@@ -93,17 +81,13 @@ class AppTextStyles {
       );
 
   static TextStyle get caption => const TextStyle(
-        fontFamily: _fontFamily,
+        fontFamily: _font,
         fontSize: 12,
         fontWeight: FontWeight.w400,
         height: 1.3,
         color: AppColors.neutral600,
       );
 }
-
-/// =======================
-/// SPACING / RADIUS / SHADOW
-/// =======================
 
 class AppRadius {
   static const BorderRadius small = BorderRadius.all(Radius.circular(8));
@@ -113,7 +97,6 @@ class AppRadius {
 }
 
 class AppShadows {
-  // shadow.level1: blur 4, opacity 8%
   static List<BoxShadow> level1 = [
     BoxShadow(
       color: Colors.black.withOpacity(0.08),
@@ -122,7 +105,6 @@ class AppShadows {
     ),
   ];
 
-  // shadow.level2: blur 12, opacity 12%
   static List<BoxShadow> level2 = [
     BoxShadow(
       color: Colors.black.withOpacity(0.12),
@@ -131,7 +113,6 @@ class AppShadows {
     ),
   ];
 
-  // shadow.level3: blur 20, opacity 16%
   static List<BoxShadow> level3 = [
     BoxShadow(
       color: Colors.black.withOpacity(0.16),
@@ -141,9 +122,6 @@ class AppShadows {
   ];
 }
 
-/// =======================
-/// THEME DATA (LIGHT / DARK)
-/// =======================
 class AppTheme {
   static ThemeData get light {
     final base = ThemeData.light(useMaterial3: false);
@@ -157,6 +135,9 @@ class AppTheme {
         error: AppColors.error,
         surface: AppColors.white,
         background: AppColors.white,
+        outline: AppColors.neutral300,
+        outlineVariant: AppColors.neutral200,
+        onSurfaceVariant: AppColors.neutral500,
       ),
       textTheme: base.textTheme.copyWith(
         displayLarge: AppTextStyles.display,
@@ -171,7 +152,7 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Roboto',
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.neutral900,
@@ -188,7 +169,7 @@ class AppTheme {
           ),
           textStyle: const TextStyle(
             fontFamily: 'Inter',
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -196,7 +177,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.neutral50,
-        contentPadding: const EdgeInsets.all(12),
+        contentPadding: const EdgeInsets.all(16),
         border: OutlineInputBorder(
           borderRadius: AppRadius.medium,
           borderSide: const BorderSide(color: AppColors.neutral200),
@@ -244,6 +225,9 @@ class AppTheme {
         error: AppColors.error,
         surface: const Color(0xFF1D1D1D),
         background: const Color(0xFF121212),
+        outline: AppColors.neutral600,
+        outlineVariant: AppColors.neutral700,
+        onSurfaceVariant: AppColors.neutral400,
       ),
       textTheme: base.textTheme.apply(
         fontFamily: 'Inter',
@@ -265,7 +249,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: const Color(0xFF1D1D1D),
-        contentPadding: const EdgeInsets.all(12),
+        contentPadding: const EdgeInsets.all(16),
         border: OutlineInputBorder(
           borderRadius: AppRadius.medium,
           borderSide: const BorderSide(color: AppColors.neutral600),

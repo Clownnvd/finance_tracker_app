@@ -5,7 +5,7 @@ part 'user_model.freezed.dart';
 part 'user_model.g.dart';
 
 @freezed
-class UserModel with _$UserModel {
+abstract class UserModel with _$UserModel {
   const factory UserModel({
     required String id,
     required String email,
@@ -20,24 +20,4 @@ class UserModel with _$UserModel {
         email: user.email ?? '',
         fullName: user.userMetadata?['full_name'] as String?,
       );
-      
-       
-      
-        @override
-        Map<String, dynamic> toJson() {
-          // TODO: implement toJson
-          throw UnimplementedError();
-        }
-        
-          @override
-          // TODO: implement email
-          String get email => throw UnimplementedError();
-        
-          @override
-          // TODO: implement fullName
-          String? get fullName => throw UnimplementedError();
-        
-          @override
-          // TODO: implement id
-          String get id => throw UnimplementedError();
 }

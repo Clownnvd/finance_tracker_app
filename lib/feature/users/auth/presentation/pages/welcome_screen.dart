@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:finance_tracking_app/gen/assets.gen.dart';
-import 'package:finance_tracking_app/core/router/app_router.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -10,10 +10,7 @@ class WelcomeScreen extends StatelessWidget {
     final wallet = Assets.icons.walletSolid.svg(
       width: 200,
       height: 200,
-      colorFilter: const ColorFilter.mode(
-        Colors.green,
-        BlendMode.srcIn,
-      ),
+      colorFilter: const ColorFilter.mode(Colors.green, BlendMode.srcIn),
     );
 
     return Scaffold(
@@ -30,10 +27,7 @@ class WelcomeScreen extends StatelessWidget {
 
                 const Text(
                   'Welcome',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 12),
@@ -41,10 +35,7 @@ class WelcomeScreen extends StatelessWidget {
                 const Text(
                   'Take control of your finances with us.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black54,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
                 ),
 
                 const SizedBox(height: 32),
