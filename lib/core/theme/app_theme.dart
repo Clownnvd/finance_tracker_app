@@ -38,7 +38,7 @@ class AppColors {
 }
 
 class AppTextStyles {
-  static const String _font = 'Inter';
+  static const String _font = 'Roboto';
 
   static TextStyle get display => const TextStyle(
         fontFamily: _font,
@@ -168,7 +168,7 @@ class AppTheme {
             borderRadius: AppRadius.medium,
           ),
           textStyle: const TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Roboto',
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -230,7 +230,7 @@ class AppTheme {
         onSurfaceVariant: AppColors.neutral400,
       ),
       textTheme: base.textTheme.apply(
-        fontFamily: 'Inter',
+        fontFamily: 'Roboto',
         bodyColor: AppColors.neutral100,
         displayColor: AppColors.neutral100,
       ),
@@ -239,7 +239,7 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Roboto',
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.neutral100,

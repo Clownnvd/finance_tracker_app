@@ -135,7 +135,7 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsWidgets);
 
     completer.complete(
-      UserModel(id: '1', email: 'test@example.com', fullName: 'User'),
+      const UserModel(id: '1', email: 'test@example.com', fullName: 'User'),
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 900));
@@ -151,7 +151,7 @@ void main() {
         fullName: any(named: 'fullName'),
       ),
     ).thenAnswer(
-      (_) async => UserModel(
+      (_) async => const UserModel(
         id: '1',
         email: 'test@example.com',
         fullName: 'Test User',
@@ -200,7 +200,7 @@ void main() {
         fullName: any(named: 'fullName'),
       ),
     ).thenAnswer(
-      (_) async => UserModel(
+      (_) async => const  UserModel(
         id: '1',
         email: 'test@example.com',
         fullName: 'User',

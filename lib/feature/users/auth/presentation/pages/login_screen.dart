@@ -158,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           "Don't have an account? ",
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onBackground.withOpacity(0.6),
+                            color: colorScheme.onSurface.withOpacity(0.6),
                           ),
                         ),
                         GestureDetector(

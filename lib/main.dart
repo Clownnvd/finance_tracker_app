@@ -14,7 +14,7 @@ Future<void> main() async {
   String? initError;
 
   try {
-    await dotenv.load(fileName: '.env');
+    await dotenv.load();
 
     final supabaseUrl = dotenv.env['SUPABASE_URL'];
     final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];

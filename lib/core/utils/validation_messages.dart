@@ -9,4 +9,6 @@ class ValidationMessages {
 
   static const confirmPassword = 'Please confirm your password';
   static const passwordMismatch = 'Password does not match';
+  
+  static const enterFullName = 'Please enter your full name';
 }
