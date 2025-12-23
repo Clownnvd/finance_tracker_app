@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/error/exceptions.dart';
 import 'package:finance_tracker_app/core/router/app_router.dart';
 import 'package:finance_tracker_app/core/theme/app_theme.dart';
@@ -12,7 +13,6 @@ import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_mode
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/login.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/sign_up.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/pages/login_screen.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/pages/sign_up_screen.dart';
 
@@ -49,13 +49,21 @@ void main() {
 
   Future<void> fillValidForm(WidgetTester tester) async {
     await tester.enterText(
-        find.byType(TextFormField).at(0), 'Test User');
+      find.widgetWithText(TextFormField, AppStrings.fullNameLabel),
+      'Test User',
+    );
     await tester.enterText(
-        find.byType(TextFormField).at(1), 'test@example.com');
+      find.widgetWithText(TextFormField, AppStrings.emailLabel),
+      'test@example.com',
+    );
     await tester.enterText(
-        find.byType(TextFormField).at(2), 'Password123');
+      find.widgetWithText(TextFormField, AppStrings.passwordLabel),
+      'Password123',
+    );
     await tester.enterText(
-        find.byType(TextFormField).at(3), 'Password123');
+      find.widgetWithText(TextFormField, AppStrings.confirmPasswordLabel),
+      'Password123',
+    );
   }
 
   setUp(() {
@@ -70,34 +78,37 @@ void main() {
 
   testWidgets('renders all required widgets', (tester) async {
     await tester.pumpWidget(buildTestApp(const SignUpScreen()));
+    await tester.pump();
 
-    expect(find.text('Sign Up'), findsNWidgets(2));
+    expect(find.text(AppStrings.signUpTitle), findsNWidgets(2));
     expect(find.byType(TextFormField), findsNWidgets(4));
-    expect(find.text('Full Name'), findsNWidgets(2));
-    expect(find.text('Email'), findsNWidgets(2));
-    expect(find.text('Password'), findsNWidgets(2));
-    expect(find.text('Confirm password'), findsNWidgets(2));
-    expect(find.text('Already have an account?'), findsOneWidget);
-    expect(find.text('Login'), findsOneWidget);
+    expect(find.text(AppStrings.fullNameLabel), findsNWidgets(1));
+    expect(find.text(AppStrings.emailLabel), findsNWidgets(2));
+    expect(find.text(AppStrings.passwordLabel), findsNWidgets(2));
+    expect(find.text(AppStrings.confirmPasswordLabel), findsNWidgets(1));
+    expect(find.text(AppStrings.alreadyHaveAccount), findsOneWidget);
+    expect(find.text(AppStrings.login), findsOneWidget);
   });
 
   testWidgets('shows validation errors when fields are empty', (tester) async {
     await tester.pumpWidget(buildTestApp(const SignUpScreen()));
+    await tester.pump();
 
     final buttonFinder =
-        find.widgetWithText(ElevatedButton, 'Sign Up');
+        find.widgetWithText(ElevatedButton, AppStrings.signUpTitle);
     await tester.ensureVisible(buttonFinder);
     await tester.tap(buttonFinder);
     await tester.pump();
 
-    expect(find.text('Please enter your full name'), findsOneWidget);
-    expect(find.text('Please enter your email'), findsOneWidget);
-    expect(find.text('Please enter your password'), findsOneWidget);
-    expect(find.text('Please confirm your password'), findsOneWidget);
+    expect(find.text(AppStrings.fullNameRequired), findsOneWidget);
+    expect(find.text(AppStrings.emailRequired), findsOneWidget);
+    expect(find.text(AppStrings.passwordRequired), findsOneWidget);
+    expect(find.text(AppStrings.confirmPasswordRequired), findsOneWidget);
   });
 
   testWidgets('password visibility toggle works', (tester) async {
     await tester.pumpWidget(buildTestApp(const SignUpScreen()));
+    await tester.pump();
 
     final showIcon = find.byIcon(Icons.visibility_outlined).first;
     expect(showIcon, findsOneWidget);
@@ -106,13 +117,11 @@ void main() {
     await tester.tap(showIcon);
     await tester.pump();
 
-    final hideIcon =
-        find.byIcon(Icons.visibility_off_outlined).first;
+    final hideIcon = find.byIcon(Icons.visibility_off_outlined).first;
     expect(hideIcon, findsOneWidget);
   });
 
-  testWidgets('button shows loading overlay when signing up',
-      (tester) async {
+  testWidgets('button shows loading overlay when signing up', (tester) async {
     final completer = Completer<UserModel>();
 
     when(
@@ -124,10 +133,11 @@ void main() {
     ).thenAnswer((_) => completer.future);
 
     await tester.pumpWidget(buildTestApp(const SignUpScreen()));
+    await tester.pump();
     await fillValidForm(tester);
 
     final buttonFinder =
-        find.widgetWithText(ElevatedButton, 'Sign Up');
+        find.widgetWithText(ElevatedButton, AppStrings.signUpTitle);
     await tester.ensureVisible(buttonFinder);
     await tester.tap(buttonFinder);
     await tester.pump();
@@ -137,6 +147,7 @@ void main() {
     completer.complete(
       const UserModel(id: '1', email: 'test@example.com', fullName: 'User'),
     );
+
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 900));
     await tester.pumpAndSettle();
@@ -159,10 +170,11 @@ void main() {
     );
 
     await tester.pumpWidget(buildTestApp(const SignUpScreen()));
+    await tester.pump();
     await fillValidForm(tester);
 
     final buttonFinder =
-        find.widgetWithText(ElevatedButton, 'Sign Up');
+        find.widgetWithText(ElevatedButton, AppStrings.signUpTitle);
     await tester.ensureVisible(buttonFinder);
     await tester.tap(buttonFinder);
     await tester.pump();
@@ -179,11 +191,11 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('navigates to LoginScreen when "Login" tapped',
-      (tester) async {
+  testWidgets('navigates to LoginScreen when "Login" tapped', (tester) async {
     await tester.pumpWidget(buildTestApp(const SignUpScreen()));
+    await tester.pump();
 
-    final loginText = find.text('Login');
+    final loginText = find.text(AppStrings.login);
     await tester.ensureVisible(loginText);
     await tester.tap(loginText);
     await tester.pumpAndSettle();
@@ -200,7 +212,7 @@ void main() {
         fullName: any(named: 'fullName'),
       ),
     ).thenAnswer(
-      (_) async => const  UserModel(
+      (_) async => const UserModel(
         id: '1',
         email: 'test@example.com',
         fullName: 'User',
@@ -208,10 +220,11 @@ void main() {
     );
 
     await tester.pumpWidget(buildTestApp(const SignUpScreen()));
+    await tester.pump();
     await fillValidForm(tester);
 
     final buttonFinder =
-        find.widgetWithText(ElevatedButton, 'Sign Up');
+        find.widgetWithText(ElevatedButton, AppStrings.signUpTitle);
     await tester.ensureVisible(buttonFinder);
     await tester.tap(buttonFinder);
 
@@ -232,10 +245,11 @@ void main() {
     ).thenThrow(const AuthException('Signup failed'));
 
     await tester.pumpWidget(buildTestApp(const SignUpScreen()));
+    await tester.pump();
     await fillValidForm(tester);
 
     final buttonFinder =
-        find.widgetWithText(ElevatedButton, 'Sign Up');
+        find.widgetWithText(ElevatedButton, AppStrings.signUpTitle);
     await tester.ensureVisible(buttonFinder);
     await tester.tap(buttonFinder);
     await tester.pump();

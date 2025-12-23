@@ -2145,3 +2145,4672 @@ class CustomTextfield extends StatelessWidget {
 \n
 ===== C:\Works\finance_tracking_app\lib\shared\widgets\input\app_text_field.dart =====
 \n
+===== C:\Works\finance_tracking_app\lib\code_report.txt =====
+===== C:\Works\finance_tracking_app\lib\main.dart =====
+import 'package:flutter/material.dart';
+import 'package:finance_tracker_app/feature/users/presentation/pages/welcome_screen.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+
+      // đảm bảo có Directionality + Theme + textScale 
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(1.0),
+          ),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: child!,
+          ),
+        );
+      },
+
+      // theme mặc định đầy đủ
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.green,
+      ),
+
+      home: const SafeArea(
+        child: WelcomeScreen(),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\router\app_router.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\login_screen.dart =====
+// Thay đổi đường dẫn import này cho đúng với project của bạn
+import 'package:finance_tracker_app/feature/users/presentation/widgets/custom_text_field.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:flutter/material.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  
+  // Biến trạng thái ẩn/hiện mật khẩu
+  bool _isPasswordHidden = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget loginImage = Assets.images.loginImg.image(
+      width: 240,
+      height: 120,
+      fit: BoxFit.contain, // Thêm fit để ảnh không bị méo
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.white, // Thêm màu nền trắng cho sạch
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 40), // Thêm khoảng cách đầu trang
+
+              const Text(
+                'Welcome to Personal\nFinance Tracker',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Hiển thị ảnh
+              Center(child: loginImage),
+
+              const SizedBox(height: 32),
+
+              // --- EMAIL FIELD ---
+              CustomTextfield(
+                controller: _emailController,
+                hintText: 'Email',
+                obscureText: false, // Email không cần ẩn ký tự
+                keyboardType: TextInputType.emailAddress,
+              ),
+
+              const SizedBox(height: 16),
+
+              // --- PASSWORD FIELD ---
+              CustomTextfield(
+                controller: _passwordController,
+                hintText: 'Password',
+                obscureText: _isPasswordHidden,
+                keyboardType: TextInputType.visiblePassword,
+                // Logic icon mắt thần
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordHidden 
+                        ? Icons.visibility_off 
+                        : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordHidden = !_isPasswordHidden;
+                    });
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // --- LOGIN BUTTON ---
+              ElevatedButton(
+                onPressed: () {
+                  // Xử lý đăng nhập
+                  print("Email: ${_emailController.text}");
+                  print("Pass: ${_passwordController.text}");
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF77D0E), // Màu cam
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: const Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // --- FOOTER REGISTER ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Don't have an account? ",
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      // Điều hướng sang trang Register
+                    },
+                    child: const Text(
+                      "Register",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 20), // Khoảng cách dưới cùng
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\sign_up_screen.dart =====
+import 'package:finance_tracker_app/feature/users/presentation/widgets/custom_text_field.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:flutter/material.dart';
+
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget sign_up_image = Assets.images.signUpImg.image(
+      width: 240,
+      height: 120,
+      fit: BoxFit.contain, // Thêm fit để ảnh không bị méo
+    );
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                const Text(
+                  'Sign Up',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+
+                sign_up_image,
+
+                const SizedBox(height: 32),
+
+                // Full Name
+                CustomTextfield(
+                  hintText: 'Full Name',
+                  obscureText: false,
+                  controller: _fullNameController,
+                  keyboardType: TextInputType.name,
+                ),
+                const SizedBox(height: 16),
+
+                // Email
+                CustomTextfield(
+                  hintText: 'Email',
+                  obscureText: false,
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+
+                // Password
+                CustomTextfield(
+                  hintText: 'Password',
+                  obscureText: !_showPassword,
+                  controller: _passwordController,
+                  keyboardType: TextInputType.visiblePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Confirm password
+                CustomTextfield(
+                  hintText: 'Confirm password',
+                  obscureText: !_showConfirmPassword,
+                  controller: _confirmPasswordController,
+                  keyboardType: TextInputType.visiblePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showConfirmPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showConfirmPassword = !_showConfirmPassword;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Nút Sign Up
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      // TODO: handle sign up
+                    },
+                    child: const Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Text dưới cùng
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Already have an account? "),
+                    GestureDetector(
+                      onTap: () {
+                        // TODO: chuyển sang màn Login
+                      },
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\welcome_screen.dart =====
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+
+class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget wallet = Assets.icons.walletSolid.svg(
+      width: 240,
+      height: 120,
+      colorFilter: const ColorFilter.mode(Colors.green, BlendMode.srcIn)
+    );
+    return Scaffold(
+      body: Column(
+        children: [
+          wallet,
+          const Text('Welcome'),
+          const SizedBox(height: 12),
+          const Text('Take control of your finances with us.'),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: () {}, child: Text('Get Started')),
+        ],
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\presentation\widgets\custom_text_field.dart =====
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
+class CustomTextfield extends StatelessWidget {
+  final String hintText;
+  final bool obscureText;
+  final Widget? suffixIcon;
+  final TextEditingController? controller;
+  final TextInputType keyboardType;
+
+  const CustomTextfield({
+    super.key,
+    required this.hintText,
+    required this.obscureText,
+    this.suffixIcon,
+    this.controller,
+    required this.keyboardType,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(color: Colors.grey[500]),
+        suffixIcon: suffixIcon,
+        contentPadding: const EdgeInsets.all(16),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.grey)
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.orange,
+            width: 2
+          )
+        )
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\gen\assets.gen.dart =====
+// dart format width=80
+
+/// GENERATED CODE - DO NOT MODIFY BY HAND
+/// *****************************************************
+///  FlutterGen
+/// *****************************************************
+
+// coverage:ignore-file
+// ignore_for_file: type=lint
+// ignore_for_file: deprecated_member_use,directives_ordering,implicit_dynamic_list_literal,unnecessary_import
+
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart' as _svg;
+import 'package:vector_graphics/vector_graphics.dart' as _vg;
+
+class $AssetsIconsGen {
+  const $AssetsIconsGen();
+
+  /// File path: assets/icons/wallet-solid.svg
+  SvgGenImage get walletSolid =>
+      const SvgGenImage('assets/icons/wallet-solid.svg');
+
+  /// List of all assets
+  List<SvgGenImage> get values => [walletSolid];
+}
+
+class $AssetsImagesGen {
+  const $AssetsImagesGen();
+
+  /// File path: assets/images/login_img.png
+  AssetGenImage get loginImg =>
+      const AssetGenImage('assets/images/login_img.png');
+
+  /// File path: assets/images/sign_up_img.png
+  AssetGenImage get signUpImg =>
+      const AssetGenImage('assets/images/sign_up_img.png');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [loginImg, signUpImg];
+}
+
+class Assets {
+  const Assets._();
+
+  static const $AssetsIconsGen icons = $AssetsIconsGen();
+  static const $AssetsImagesGen images = $AssetsImagesGen();
+}
+
+class AssetGenImage {
+  const AssetGenImage(
+    this._assetName, {
+    this.size,
+    this.flavors = const {},
+    this.animation,
+  });
+
+  final String _assetName;
+
+  final Size? size;
+  final Set<String> flavors;
+  final AssetGenImageAnimation? animation;
+
+  Image image({
+    Key? key,
+    AssetBundle? bundle,
+    ImageFrameBuilder? frameBuilder,
+    ImageErrorWidgetBuilder? errorBuilder,
+    String? semanticLabel,
+    bool excludeFromSemantics = false,
+    double? scale,
+    double? width,
+    double? height,
+    Color? color,
+    Animation<double>? opacity,
+    BlendMode? colorBlendMode,
+    BoxFit? fit,
+    AlignmentGeometry alignment = Alignment.center,
+    ImageRepeat repeat = ImageRepeat.noRepeat,
+    Rect? centerSlice,
+    bool matchTextDirection = false,
+    bool gaplessPlayback = true,
+    bool isAntiAlias = false,
+    String? package,
+    FilterQuality filterQuality = FilterQuality.medium,
+    int? cacheWidth,
+    int? cacheHeight,
+  }) {
+    return Image.asset(
+      _assetName,
+      key: key,
+      bundle: bundle,
+      frameBuilder: frameBuilder,
+      errorBuilder: errorBuilder,
+      semanticLabel: semanticLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      scale: scale,
+      width: width,
+      height: height,
+      color: color,
+      opacity: opacity,
+      colorBlendMode: colorBlendMode,
+      fit: fit,
+      alignment: alignment,
+      repeat: repeat,
+      centerSlice: centerSlice,
+      matchTextDirection: matchTextDirection,
+      gaplessPlayback: gaplessPlayback,
+      isAntiAlias: isAntiAlias,
+      package: package,
+      filterQuality: filterQuality,
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
+    );
+  }
+
+  ImageProvider provider({AssetBundle? bundle, String? package}) {
+    return AssetImage(_assetName, bundle: bundle, package: package);
+  }
+
+  String get path => _assetName;
+
+  String get keyName => _assetName;
+}
+
+class AssetGenImageAnimation {
+  const AssetGenImageAnimation({
+    required this.isAnimation,
+    required this.duration,
+    required this.frames,
+  });
+
+  final bool isAnimation;
+  final Duration duration;
+  final int frames;
+}
+
+class SvgGenImage {
+  const SvgGenImage(this._assetName, {this.size, this.flavors = const {}})
+    : _isVecFormat = false;
+
+  const SvgGenImage.vec(this._assetName, {this.size, this.flavors = const {}})
+    : _isVecFormat = true;
+
+  final String _assetName;
+  final Size? size;
+  final Set<String> flavors;
+  final bool _isVecFormat;
+
+  _svg.SvgPicture svg({
+    Key? key,
+    bool matchTextDirection = false,
+    AssetBundle? bundle,
+    String? package,
+    double? width,
+    double? height,
+    BoxFit fit = BoxFit.contain,
+    AlignmentGeometry alignment = Alignment.center,
+    bool allowDrawingOutsideViewBox = false,
+    WidgetBuilder? placeholderBuilder,
+    String? semanticsLabel,
+    bool excludeFromSemantics = false,
+    _svg.SvgTheme? theme,
+    _svg.ColorMapper? colorMapper,
+    ColorFilter? colorFilter,
+    Clip clipBehavior = Clip.hardEdge,
+    @deprecated Color? color,
+    @deprecated BlendMode colorBlendMode = BlendMode.srcIn,
+    @deprecated bool cacheColorFilter = false,
+  }) {
+    final _svg.BytesLoader loader;
+    if (_isVecFormat) {
+      loader = _vg.AssetBytesLoader(
+        _assetName,
+        assetBundle: bundle,
+        packageName: package,
+      );
+    } else {
+      loader = _svg.SvgAssetLoader(
+        _assetName,
+        assetBundle: bundle,
+        packageName: package,
+        theme: theme,
+        colorMapper: colorMapper,
+      );
+    }
+    return _svg.SvgPicture(
+      loader,
+      key: key,
+      matchTextDirection: matchTextDirection,
+      width: width,
+      height: height,
+      fit: fit,
+      alignment: alignment,
+      allowDrawingOutsideViewBox: allowDrawingOutsideViewBox,
+      placeholderBuilder: placeholderBuilder,
+      semanticsLabel: semanticsLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      colorFilter:
+          colorFilter ??
+          (color == null ? null : ColorFilter.mode(color, colorBlendMode)),
+      clipBehavior: clipBehavior,
+      cacheColorFilter: cacheColorFilter,
+    );
+  }
+
+  String get path => _assetName;
+
+  String get keyName => _assetName;
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\code_report.txt =====
+===== C:\Works\finance_tracking_app\lib\main.dart =====
+import 'package:flutter/material.dart';
+import 'package:finance_tracker_app/feature/users/presentation/pages/welcome_screen.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+
+      // đảm bảo có Directionality + Theme + textScale 
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(1.0),
+          ),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: child!,
+          ),
+        );
+      },
+
+      // theme mặc định đầy đủ
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.green,
+      ),
+
+      home: const SafeArea(
+        child: WelcomeScreen(),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\router\app_router.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\login_screen.dart =====
+// Thay đổi đường dẫn import này cho đúng với project của bạn
+import 'package:finance_tracker_app/feature/users/presentation/widgets/custom_text_field.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:flutter/material.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  
+  // Biến trạng thái ẩn/hiện mật khẩu
+  bool _isPasswordHidden = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget loginImage = Assets.images.loginImg.image(
+      width: 240,
+      height: 120,
+      fit: BoxFit.contain, // Thêm fit để ảnh không bị méo
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.white, // Thêm màu nền trắng cho sạch
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 40), // Thêm khoảng cách đầu trang
+
+              const Text(
+                'Welcome to Personal\nFinance Tracker',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Hiển thị ảnh
+              Center(child: loginImage),
+
+              const SizedBox(height: 32),
+
+              // --- EMAIL FIELD ---
+              CustomTextfield(
+                controller: _emailController,
+                hintText: 'Email',
+                obscureText: false, // Email không cần ẩn ký tự
+                keyboardType: TextInputType.emailAddress,
+              ),
+
+              const SizedBox(height: 16),
+
+              // --- PASSWORD FIELD ---
+              CustomTextfield(
+                controller: _passwordController,
+                hintText: 'Password',
+                obscureText: _isPasswordHidden,
+                keyboardType: TextInputType.visiblePassword,
+                // Logic icon mắt thần
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordHidden 
+                        ? Icons.visibility_off 
+                        : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordHidden = !_isPasswordHidden;
+                    });
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // --- LOGIN BUTTON ---
+              ElevatedButton(
+                onPressed: () {
+                  // Xử lý đăng nhập
+                  print("Email: ${_emailController.text}");
+                  print("Pass: ${_passwordController.text}");
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF77D0E), // Màu cam
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: const Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // --- FOOTER REGISTER ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Don't have an account? ",
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      // Điều hướng sang trang Register
+                    },
+                    child: const Text(
+                      "Register",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 20), // Khoảng cách dưới cùng
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\sign_up_screen.dart =====
+import 'package:finance_tracker_app/feature/users/presentation/widgets/custom_text_field.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:flutter/material.dart';
+
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget sign_up_image = Assets.images.signUpImg.image(
+      width: 240,
+      height: 120,
+      fit: BoxFit.contain, // Thêm fit để ảnh không bị méo
+    );
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                const Text(
+                  'Sign Up',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+
+                sign_up_image,
+
+                const SizedBox(height: 32),
+
+                // Full Name
+                CustomTextfield(
+                  hintText: 'Full Name',
+                  obscureText: false,
+                  controller: _fullNameController,
+                  keyboardType: TextInputType.name,
+                ),
+                const SizedBox(height: 16),
+
+                // Email
+                CustomTextfield(
+                  hintText: 'Email',
+                  obscureText: false,
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+
+                // Password
+                CustomTextfield(
+                  hintText: 'Password',
+                  obscureText: !_showPassword,
+                  controller: _passwordController,
+                  keyboardType: TextInputType.visiblePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Confirm password
+                CustomTextfield(
+                  hintText: 'Confirm password',
+                  obscureText: !_showConfirmPassword,
+                  controller: _confirmPasswordController,
+                  keyboardType: TextInputType.visiblePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showConfirmPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showConfirmPassword = !_showConfirmPassword;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Nút Sign Up
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      // TODO: handle sign up
+                    },
+                    child: const Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Text dưới cùng
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Already have an account? "),
+                    GestureDetector(
+                      onTap: () {
+                        // TODO: chuyển sang màn Login
+                      },
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\presentation\pages\welcome_screen.dart =====
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+
+class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget wallet = Assets.icons.walletSolid.svg(
+      width: 240,
+      height: 120,
+      colorFilter: const ColorFilter.mode(Colors.green, BlendMode.srcIn)
+    );
+    return Scaffold(
+      body: Column(
+        children: [
+          wallet,
+          const Text('Welcome'),
+          const SizedBox(height: 12),
+          const Text('Take control of your finances with us.'),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: () {}, child: Text('Get Started')),
+        ],
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\presentation\widgets\custom_text_field.dart =====
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
+class CustomTextfield extends StatelessWidget {
+  final String hintText;
+  final bool obscureText;
+  final Widget? suffixIcon;
+  final TextEditingController? controller;
+  final TextInputType keyboardType;
+
+  const CustomTextfield({
+    super.key,
+    required this.hintText,
+    required this.obscureText,
+    this.suffixIcon,
+    this.controller,
+    required this.keyboardType,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(color: Colors.grey[500]),
+        suffixIcon: suffixIcon,
+        contentPadding: const EdgeInsets.all(16),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.grey)
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.orange,
+            width: 2
+          )
+        )
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\gen\assets.gen.dart =====
+// dart format width=80
+
+/// GENERATED CODE - DO NOT MODIFY BY HAND
+/// *****************************************************
+///  FlutterGen
+/// *****************************************************
+
+// coverage:ignore-file
+// ignore_for_file: type=lint
+// ignore_for_file: deprecated_member_use,directives_ordering,implicit_dynamic_list_literal,unnecessary_import
+
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart' as _svg;
+import 'package:vector_graphics/vector_graphics.dart' as _vg;
+
+class $AssetsIconsGen {
+  const $AssetsIconsGen();
+
+  /// File path: assets/icons/wallet-solid.svg
+  SvgGenImage get walletSolid =>
+      const SvgGenImage('assets/icons/wallet-solid.svg');
+
+  /// List of all assets
+  List<SvgGenImage> get values => [walletSolid];
+}
+
+class $AssetsImagesGen {
+  const $AssetsImagesGen();
+
+  /// File path: assets/images/login_img.png
+  AssetGenImage get loginImg =>
+      const AssetGenImage('assets/images/login_img.png');
+
+  /// File path: assets/images/sign_up_img.png
+  AssetGenImage get signUpImg =>
+      const AssetGenImage('assets/images/sign_up_img.png');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [loginImg, signUpImg];
+}
+
+class Assets {
+  const Assets._();
+
+  static const $AssetsIconsGen icons = $AssetsIconsGen();
+  static const $AssetsImagesGen images = $AssetsImagesGen();
+}
+
+class AssetGenImage {
+  const AssetGenImage(
+    this._assetName, {
+    this.size,
+    this.flavors = const {},
+    this.animation,
+  });
+
+  final String _assetName;
+
+  final Size? size;
+  final Set<String> flavors;
+  final AssetGenImageAnimation? animation;
+
+  Image image({
+    Key? key,
+    AssetBundle? bundle,
+    ImageFrameBuilder? frameBuilder,
+    ImageErrorWidgetBuilder? errorBuilder,
+    String? semanticLabel,
+    bool excludeFromSemantics = false,
+    double? scale,
+    double? width,
+    double? height,
+    Color? color,
+    Animation<double>? opacity,
+    BlendMode? colorBlendMode,
+    BoxFit? fit,
+    AlignmentGeometry alignment = Alignment.center,
+    ImageRepeat repeat = ImageRepeat.noRepeat,
+    Rect? centerSlice,
+    bool matchTextDirection = false,
+    bool gaplessPlayback = true,
+    bool isAntiAlias = false,
+    String? package,
+    FilterQuality filterQuality = FilterQuality.medium,
+    int? cacheWidth,
+    int? cacheHeight,
+  }) {
+    return Image.asset(
+      _assetName,
+      key: key,
+      bundle: bundle,
+      frameBuilder: frameBuilder,
+      errorBuilder: errorBuilder,
+      semanticLabel: semanticLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      scale: scale,
+      width: width,
+      height: height,
+      color: color,
+      opacity: opacity,
+      colorBlendMode: colorBlendMode,
+      fit: fit,
+      alignment: alignment,
+      repeat: repeat,
+      centerSlice: centerSlice,
+      matchTextDirection: matchTextDirection,
+      gaplessPlayback: gaplessPlayback,
+      isAntiAlias: isAntiAlias,
+      package: package,
+      filterQuality: filterQuality,
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
+    );
+  }
+
+  ImageProvider provider({AssetBundle? bundle, String? package}) {
+    return AssetImage(_assetName, bundle: bundle, package: package);
+  }
+
+  String get path => _assetName;
+
+  String get keyName => _assetName;
+}
+
+class AssetGenImageAnimation {
+  const AssetGenImageAnimation({
+    required this.isAnimation,
+    required this.duration,
+    required this.frames,
+  });
+
+  final bool isAnimation;
+  final Duration duration;
+  final int frames;
+}
+
+class SvgGenImage {
+  const SvgGenImage(this._assetName, {this.size, this.flavors = const {}})
+    : _isVecFormat = false;
+
+  const SvgGenImage.vec(this._assetName, {this.size, this.flavors = const {}})
+    : _isVecFormat = true;
+
+  final String _assetName;
+  final Size? size;
+  final Set<String> flavors;
+  final bool _isVecFormat;
+
+  _svg.SvgPicture svg({
+    Key? key,
+    bool matchTextDirection = false,
+    AssetBundle? bundle,
+    String? package,
+    double? width,
+    double? height,
+    BoxFit fit = BoxFit.contain,
+    AlignmentGeometry alignment = Alignment.center,
+    bool allowDrawingOutsideViewBox = false,
+    WidgetBuilder? placeholderBuilder,
+    String? semanticsLabel,
+    bool excludeFromSemantics = false,
+    _svg.SvgTheme? theme,
+    _svg.ColorMapper? colorMapper,
+    ColorFilter? colorFilter,
+    Clip clipBehavior = Clip.hardEdge,
+    @deprecated Color? color,
+    @deprecated BlendMode colorBlendMode = BlendMode.srcIn,
+    @deprecated bool cacheColorFilter = false,
+  }) {
+    final _svg.BytesLoader loader;
+    if (_isVecFormat) {
+      loader = _vg.AssetBytesLoader(
+        _assetName,
+        assetBundle: bundle,
+        packageName: package,
+      );
+    } else {
+      loader = _svg.SvgAssetLoader(
+        _assetName,
+        assetBundle: bundle,
+        packageName: package,
+        theme: theme,
+        colorMapper: colorMapper,
+      );
+    }
+    return _svg.SvgPicture(
+      loader,
+      key: key,
+      matchTextDirection: matchTextDirection,
+      width: width,
+      height: height,
+      fit: fit,
+      alignment: alignment,
+      allowDrawingOutsideViewBox: allowDrawingOutsideViewBox,
+      placeholderBuilder: placeholderBuilder,
+      semanticsLabel: semanticsLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      colorFilter:
+          colorFilter ??
+          (color == null ? null : ColorFilter.mode(color, colorBlendMode)),
+      clipBehavior: clipBehavior,
+      cacheColorFilter: cacheColorFilter,
+    );
+  }
+
+  String get path => _assetName;
+
+  String get keyName => _assetName;
+}
+
+\n
+
+\n
+===== C:\Works\finance_tracking_app\lib\main.dart =====
+import 'package:flutter/material.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+
+      // đảm bảo có Directionality + Theme + textScale 
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(1.0),
+          ),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: child!,
+          ),
+        );
+      },
+
+      // theme mặc định đầy đủ
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.green,
+      ),
+
+      // dùng router thay cho home
+      navigatorKey: AppRouter.navigatorKey,
+      initialRoute: AppRoutes.welcome,
+      onGenerateRoute: AppRouter.onGenerateRoute,
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\router\app_router.dart =====
+import 'package:flutter/material.dart';
+
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/welcome_screen.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/login_screen.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/sign_up_screen.dart';
+
+class AppRoutes {
+  static const String welcome = '/';
+  static const String login = '/login';
+  static const String signUp = '/sign-up';
+}
+
+class AppRouter {
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case AppRoutes.welcome:
+        return MaterialPageRoute(
+          builder: (_) => const WelcomeScreen(),
+          settings: settings,
+        );
+
+      case AppRoutes.login:
+        return MaterialPageRoute(
+          builder: (_) => const LoginScreen(),
+          settings: settings,
+        );
+
+      case AppRoutes.signUp:
+        return MaterialPageRoute(
+          builder: (_) => const SignUpScreen(),
+          settings: settings,
+        );
+
+      default:
+        return MaterialPageRoute(
+          builder: (_) => const Scaffold(
+            body: Center(
+              child: Text('Route not found'),
+            ),
+          ),
+          settings: settings,
+        );
+    }
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\cubit\auth_cubit.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\cubit\auth_state.dart =====
+import 'package:equatable/equatable.dart';
+
+sealed class AuthState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+class AuthInitial extends AuthState {}
+
+class AuthLoading extends AuthState {}
+
+class AuthSuccess extends AuthState {
+  final UserModel user;
+  AuthSuccess(this.user);
+
+  @override
+  List<Object?> get props => [user];
+}
+
+class AuthFailure extends AuthState {
+  final String message;
+  AuthFailure(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\login_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:finance_tracker_app/shared/widgets/button/custom_text_field.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart'; 
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  bool _isPasswordHidden = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loginImage = Assets.images.loginImg.image(
+      width: 240,
+      height: 120,
+      fit: BoxFit.contain, 
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.white, 
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 40), 
+
+              const Text(
+                'Welcome to Personal\nFinance Tracker',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              Center(child: loginImage),
+
+              const SizedBox(height: 32),
+
+              CustomTextfield(
+                controller: _emailController,
+                hintText: 'Email',
+                obscureText: false, 
+                keyboardType: TextInputType.emailAddress,
+              ),
+
+              const SizedBox(height: 16),
+
+              CustomTextfield(
+                controller: _passwordController,
+                hintText: 'Password',
+                obscureText: _isPasswordHidden,
+                keyboardType: TextInputType.visiblePassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordHidden
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordHidden = !_isPasswordHidden;
+                    });
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              ElevatedButton(
+                onPressed: () {
+                  debugPrint("Email: ${_emailController.text}");
+                  debugPrint("Pass: ${_passwordController.text}");
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF77D0E),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: const Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Don't have an account? ",
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, AppRoutes.signUp);
+                    },
+                    child: const Text(
+                      "Register",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20), // Khoảng cách dưới cùng
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\sign_up_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:finance_tracker_app/shared/widgets/button/custom_text_field.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart'; 
+
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final signUpImage = Assets.images.signUpImg.image(
+      width: 240,
+      height: 120,
+      fit: BoxFit.contain,
+    );
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                const Text(
+                  'Sign Up',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+
+                signUpImage,
+
+                const SizedBox(height: 32),
+
+                CustomTextfield(
+                  hintText: 'Full Name',
+                  obscureText: false,
+                  controller: _fullNameController,
+                  keyboardType: TextInputType.name,
+                ),
+                const SizedBox(height: 16),
+
+                CustomTextfield(
+                  hintText: 'Email',
+                  obscureText: false,
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                const SizedBox(height: 16),
+
+                CustomTextfield(
+                  hintText: 'Password',
+                  obscureText: !_showPassword,
+                  controller: _passwordController,
+                  keyboardType: TextInputType.visiblePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showPassword = !_showPassword;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                CustomTextfield(
+                  hintText: 'Confirm password',
+                  obscureText: !_showConfirmPassword,
+                  controller: _confirmPasswordController,
+                  keyboardType: TextInputType.visiblePassword,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _showConfirmPassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showConfirmPassword = !_showConfirmPassword;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                    },
+                    child: const Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Already have an account? "),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, AppRoutes.login);
+                      },
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\welcome_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart';
+
+class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final wallet = Assets.icons.walletSolid.svg(
+      width: 200,
+      height: 200,
+      colorFilter: const ColorFilter.mode(
+        Colors.green,
+        BlendMode.srcIn,
+      ),
+    );
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                wallet,
+
+                const SizedBox(height: 24),
+
+                const Text(
+                  'Welcome',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                const Text(
+                  'Take control of your finances with us.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRoutes.login);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Get Started',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\gen\assets.gen.dart =====
+// dart format width=80
+
+/// GENERATED CODE - DO NOT MODIFY BY HAND
+/// *****************************************************
+///  FlutterGen
+/// *****************************************************
+
+// coverage:ignore-file
+// ignore_for_file: type=lint
+// ignore_for_file: deprecated_member_use,directives_ordering,implicit_dynamic_list_literal,unnecessary_import
+
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart' as _svg;
+import 'package:vector_graphics/vector_graphics.dart' as _vg;
+
+class $AssetsIconsGen {
+  const $AssetsIconsGen();
+
+  /// File path: assets/icons/wallet-solid.svg
+  SvgGenImage get walletSolid =>
+      const SvgGenImage('assets/icons/wallet-solid.svg');
+
+  /// List of all assets
+  List<SvgGenImage> get values => [walletSolid];
+}
+
+class $AssetsImagesGen {
+  const $AssetsImagesGen();
+
+  /// File path: assets/images/login_img.png
+  AssetGenImage get loginImg =>
+      const AssetGenImage('assets/images/login_img.png');
+
+  /// File path: assets/images/sign_up_img.png
+  AssetGenImage get signUpImg =>
+      const AssetGenImage('assets/images/sign_up_img.png');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [loginImg, signUpImg];
+}
+
+class Assets {
+  const Assets._();
+
+  static const $AssetsIconsGen icons = $AssetsIconsGen();
+  static const $AssetsImagesGen images = $AssetsImagesGen();
+}
+
+class AssetGenImage {
+  const AssetGenImage(
+    this._assetName, {
+    this.size,
+    this.flavors = const {},
+    this.animation,
+  });
+
+  final String _assetName;
+
+  final Size? size;
+  final Set<String> flavors;
+  final AssetGenImageAnimation? animation;
+
+  Image image({
+    Key? key,
+    AssetBundle? bundle,
+    ImageFrameBuilder? frameBuilder,
+    ImageErrorWidgetBuilder? errorBuilder,
+    String? semanticLabel,
+    bool excludeFromSemantics = false,
+    double? scale,
+    double? width,
+    double? height,
+    Color? color,
+    Animation<double>? opacity,
+    BlendMode? colorBlendMode,
+    BoxFit? fit,
+    AlignmentGeometry alignment = Alignment.center,
+    ImageRepeat repeat = ImageRepeat.noRepeat,
+    Rect? centerSlice,
+    bool matchTextDirection = false,
+    bool gaplessPlayback = true,
+    bool isAntiAlias = false,
+    String? package,
+    FilterQuality filterQuality = FilterQuality.medium,
+    int? cacheWidth,
+    int? cacheHeight,
+  }) {
+    return Image.asset(
+      _assetName,
+      key: key,
+      bundle: bundle,
+      frameBuilder: frameBuilder,
+      errorBuilder: errorBuilder,
+      semanticLabel: semanticLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      scale: scale,
+      width: width,
+      height: height,
+      color: color,
+      opacity: opacity,
+      colorBlendMode: colorBlendMode,
+      fit: fit,
+      alignment: alignment,
+      repeat: repeat,
+      centerSlice: centerSlice,
+      matchTextDirection: matchTextDirection,
+      gaplessPlayback: gaplessPlayback,
+      isAntiAlias: isAntiAlias,
+      package: package,
+      filterQuality: filterQuality,
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
+    );
+  }
+
+  ImageProvider provider({AssetBundle? bundle, String? package}) {
+    return AssetImage(_assetName, bundle: bundle, package: package);
+  }
+
+  String get path => _assetName;
+
+  String get keyName => _assetName;
+}
+
+class AssetGenImageAnimation {
+  const AssetGenImageAnimation({
+    required this.isAnimation,
+    required this.duration,
+    required this.frames,
+  });
+
+  final bool isAnimation;
+  final Duration duration;
+  final int frames;
+}
+
+class SvgGenImage {
+  const SvgGenImage(this._assetName, {this.size, this.flavors = const {}})
+    : _isVecFormat = false;
+
+  const SvgGenImage.vec(this._assetName, {this.size, this.flavors = const {}})
+    : _isVecFormat = true;
+
+  final String _assetName;
+  final Size? size;
+  final Set<String> flavors;
+  final bool _isVecFormat;
+
+  _svg.SvgPicture svg({
+    Key? key,
+    bool matchTextDirection = false,
+    AssetBundle? bundle,
+    String? package,
+    double? width,
+    double? height,
+    BoxFit fit = BoxFit.contain,
+    AlignmentGeometry alignment = Alignment.center,
+    bool allowDrawingOutsideViewBox = false,
+    WidgetBuilder? placeholderBuilder,
+    String? semanticsLabel,
+    bool excludeFromSemantics = false,
+    _svg.SvgTheme? theme,
+    _svg.ColorMapper? colorMapper,
+    ColorFilter? colorFilter,
+    Clip clipBehavior = Clip.hardEdge,
+    @deprecated Color? color,
+    @deprecated BlendMode colorBlendMode = BlendMode.srcIn,
+    @deprecated bool cacheColorFilter = false,
+  }) {
+    final _svg.BytesLoader loader;
+    if (_isVecFormat) {
+      loader = _vg.AssetBytesLoader(
+        _assetName,
+        assetBundle: bundle,
+        packageName: package,
+      );
+    } else {
+      loader = _svg.SvgAssetLoader(
+        _assetName,
+        assetBundle: bundle,
+        packageName: package,
+        theme: theme,
+        colorMapper: colorMapper,
+      );
+    }
+    return _svg.SvgPicture(
+      loader,
+      key: key,
+      matchTextDirection: matchTextDirection,
+      width: width,
+      height: height,
+      fit: fit,
+      alignment: alignment,
+      allowDrawingOutsideViewBox: allowDrawingOutsideViewBox,
+      placeholderBuilder: placeholderBuilder,
+      semanticsLabel: semanticsLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      colorFilter:
+          colorFilter ??
+          (color == null ? null : ColorFilter.mode(color, colorBlendMode)),
+      clipBehavior: clipBehavior,
+      cacheColorFilter: cacheColorFilter,
+    );
+  }
+
+  String get path => _assetName;
+
+  String get keyName => _assetName;
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\ui_kit.dart =====
+library ui_kit;
+
+export 'button/primary_button.dart';
+export 'button/secondary_button.dart';
+export 'button/icon_button.dart';
+export 'button/loading_button.dart';
+
+export 'input/app_text_field.dart';
+export 'input/app_password_field.dart';
+export 'input/amount_input.dart';
+export 'input/app_dropdown.dart'; 
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\custom_text_field.dart =====
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
+class CustomTextfield extends StatelessWidget {
+  final String hintText;
+  final bool obscureText;
+  final Widget? suffixIcon;
+  final TextEditingController? controller;
+  final TextInputType keyboardType;
+
+  const CustomTextfield({
+    super.key,
+    required this.hintText,
+    required this.obscureText,
+    this.suffixIcon,
+    this.controller,
+    required this.keyboardType,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(color: Colors.grey[500]),
+        suffixIcon: suffixIcon,
+        contentPadding: const EdgeInsets.all(16),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.grey)
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Colors.orange,
+            width: 2
+          )
+        )
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\icon_button.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\loading_button.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\primary_button.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\secondary_button.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\input\amount_input.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\input\app_dropdown.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\input\app_password_field.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\input\app_text_field.dart =====
+\n
+
+\n
+===== C:\Works\finance_tracking_app\lib\main.dart =====
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:finance_tracker_app/core/di/di.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart';
+import 'package:finance_tracker_app/core/theme/app_theme.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  String? initError;
+
+  try {
+    // Load .env (đảm bảo file .env nằm đúng root và đã khai báo trong pubspec assets nếu bạn dùng kiểu đó)
+    await dotenv.load(fileName: '.env');
+
+    final supabaseUrl = dotenv.env['SUPABASE_URL'];
+    final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
+
+    if (supabaseUrl == null ||
+        supabaseUrl.trim().isEmpty ||
+        supabaseAnonKey == null ||
+        supabaseAnonKey.trim().isEmpty) {
+      throw Exception('Missing SUPABASE_URL hoặc SUPABASE_ANON_KEY trong file .env');
+    }
+
+    // ✅ Không dùng Supabase.initialize() nữa (vì đã chuyển sang Dio + REST API)
+    setupDI(
+      supabaseUrl: supabaseUrl.trim(),
+      supabaseAnonKey: supabaseAnonKey.trim(),
+    );
+  } catch (e, st) {
+    debugPrint('❌ Lỗi khởi tạo app: $e');
+    debugPrintStack(stackTrace: st);
+    initError = e.toString();
+  }
+
+  runApp(initError != null ? ErrorApp(errorMessage: initError!) : const AppRoot());
+}
+
+class AppRoot extends StatelessWidget {
+  const AppRoot({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>(create: (_) => getIt<AuthCubit>()),
+      ],
+      child: const MyApp(),
+    );
+  }
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(textScaler: const TextScaler.linear(1.0)),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
+
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.light,
+      navigatorKey: AppRouter.navigatorKey,
+      initialRoute: AppRoutes.welcome,
+      onGenerateRoute: AppRouter.onGenerateRoute,
+    );
+  }
+}
+
+class ErrorApp extends StatelessWidget {
+  final String errorMessage;
+
+  const ErrorApp({super.key, required this.errorMessage});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 64),
+                const SizedBox(height: 16),
+                const Text(
+                  'Đã xảy ra lỗi khi khởi tạo ứng dụng',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  errorMessage,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Vui lòng kiểm tra lại file .env và cấu hình Supabase.',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\di\di.dart =====
+import 'package:dio/dio.dart';
+import 'package:get_it/get_it.dart';
+
+import '../network/dio_client.dart';
+import '../network/session_local_data_source.dart';
+import '../network/session_local_data_source_prefs.dart';
+
+import 'package:finance_tracker_app/feature/users/auth/data/models/auth_remote_data_source.dart';
+import 'package:finance_tracker_app/feature/users/auth/data/repositories/auth_repository_impl.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/repositories/auth_repository.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/usecases/login.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/usecases/sign_up.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
+
+final getIt = GetIt.instance;
+
+void setupDI({
+  required String supabaseUrl,
+  required String supabaseAnonKey,
+}) {
+  // =======================
+  // Session storage (SharedPreferences for ALL platforms)
+  // =======================
+  getIt.registerLazySingleton<SessionLocalDataSource>(
+    () => SessionLocalDataSourcePrefs(),
+  );
+
+  // =======================
+  // Dio
+  // =======================
+  getIt.registerLazySingleton<Dio>(() {
+    final client = DioClient(
+      baseUrl: supabaseUrl,
+      anonKey: supabaseAnonKey,
+      tokenProvider: () => getIt<SessionLocalDataSource>().getAccessToken(),
+    );
+    print('Dio registered: ${getIt.isRegistered<Dio>()}');
+
+    return client.dio;
+  });
+
+  // =======================
+  // Data Sources
+  // =======================
+  getIt.registerLazySingleton<AuthRemoteDataSource>(
+    () => AuthRemoteDataSourceImpl(getIt<Dio>()),
+  );
+
+  // =======================
+  // Repositories
+  // =======================
+  getIt.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(
+      remote: getIt<AuthRemoteDataSource>(),
+      sessionLocal: getIt<SessionLocalDataSource>(),
+    ),
+  );
+
+  // =======================
+  // Usecases
+  // =======================
+  getIt.registerLazySingleton<Login>(() => Login(getIt<AuthRepository>()));
+  getIt.registerLazySingleton<Signup>(() => Signup(getIt<AuthRepository>()));
+
+  // =======================
+  // Cubits
+  // =======================
+  getIt.registerFactory<AuthCubit>(
+    () => AuthCubit(login: getIt<Login>(), signup: getIt<Signup>()),
+  );
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\error\exceptions.dart =====
+/// Base class for all application-level exceptions.
+/// Always contains a message safe to show to UI.
+class AppException implements Exception {
+  final String message;
+
+  const AppException(this.message);
+
+  @override
+  String toString() => message;
+}
+
+/// Network related issues: no internet, DNS fail, SocketException, etc.
+class NetworkException extends AppException {
+  const NetworkException([String message = 'Network error. Check connection'])
+      : super(message);
+}
+
+/// Request timeout or server took too long to respond.
+class TimeoutRequestException extends AppException {
+  const TimeoutRequestException([String message = 'Request timed out'])
+      : super(message);
+}
+
+/// Authentication errors: wrong password, invalid email, expired token, etc.
+class AuthException extends AppException {
+  const AuthException([String message = 'Authentication failed'])
+      : super(message);
+}
+
+/// Validation errors in client-side or API-side input.
+/// (e.g. password too short, email invalid format)
+class ValidationException extends AppException {
+  const ValidationException([String message = 'Invalid input data'])
+      : super(message);
+}
+
+/// Server errors (5xx) or unexpected Supabase error messages.
+class ServerException extends AppException {
+  const ServerException([String message = 'Server error occurred'])
+      : super(message);
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\error\exception_mapper.dart =====
+import 'dart:async';
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+import 'exceptions.dart';
+
+class ExceptionMapper {
+  static AppException map(dynamic error) {
+    if (error is AppException) return error;
+
+    if (error is SocketException) {
+      return const NetworkException('No internet connection');
+    }
+
+    if (error is TimeoutException) {
+      return const TimeoutRequestException();
+    }
+
+    if (error is DioException) {
+      return _mapDio(error);
+    }
+
+    return AppException(error.toString());
+  }
+
+  static AppException _mapDio(DioException e) {
+    final status = e.response?.statusCode;
+    final data = e.response?.data;
+
+    final msg = _extractSupabaseMessage(data) ??
+        _extractGenericMessage(data) ??
+        e.message ??
+        'Request failed';
+
+    // 400/401/403: auth/validation hay gặp ở Supabase Auth
+    if (status == 400 || status == 401 || status == 403) {
+      return AuthException(msg);
+    }
+
+    if (status != null && status >= 500) {
+      return ServerException(msg);
+    }
+
+    // Không rõ status thì vẫn trả msg thật thay vì "Unexpected server error"
+    return ServerException(msg);
+  }
+
+  static String? _extractSupabaseMessage(dynamic data) {
+    // Supabase thường trả: { code, error_code, msg }
+    // hoặc: { error, error_description }
+    if (data is Map<String, dynamic>) {
+      final candidates = [
+        data['msg'],
+        data['error_description'],
+        data['message'],
+        data['error'],
+        data['error_code'],
+        data['code'],
+      ];
+      for (final c in candidates) {
+        final s = c?.toString().trim();
+        if (s != null && s.isNotEmpty) return s;
+      }
+    }
+    return null;
+  }
+
+  static String? _extractGenericMessage(dynamic data) {
+    if (data is String && data.trim().isNotEmpty) return data.trim();
+    return null;
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\network\dio_client.dart =====
+import 'package:dio/dio.dart';
+
+typedef TokenProvider = Future<String?> Function();
+
+class DioClient {
+  final Dio dio;
+
+  DioClient({
+    required String baseUrl,
+    required String anonKey,
+    required TokenProvider tokenProvider,
+  }) : dio = Dio(
+          BaseOptions(
+            baseUrl: baseUrl,
+            connectTimeout: const Duration(seconds: 15),
+            receiveTimeout: const Duration(seconds: 15),
+            headers: {
+              'apikey': anonKey,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+          ),
+        ) {
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final token = await tokenProvider();
+
+          // ✅ Supabase expects Authorization Bearer token
+          // - if logged in: use accessToken
+          // - else: use anonKey (very important for /auth/v1/*)
+          options.headers['Authorization'] = 'Bearer ${token ?? anonKey}';
+
+          return handler.next(options);
+        },
+        onError: (e, handler) {
+          // log để nhìn ra lỗi thật
+          // ignore: avoid_print
+          print('❌ ${e.requestOptions.method} ${e.requestOptions.uri}');
+          // ignore: avoid_print
+          print('Status: ${e.response?.statusCode}');
+          // ignore: avoid_print
+          print('Data: ${e.response?.data}');
+          return handler.next(e);
+        },
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\network\session_local_data_source.dart =====
+abstract class SessionLocalDataSource {
+  Future<void> saveAccessToken(String token);
+  Future<String?> getAccessToken();
+  Future<void> clear();
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\network\session_local_data_source_prefs.dart =====
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'session_local_data_source.dart';
+
+class SessionLocalDataSourcePrefs implements SessionLocalDataSource {
+  static const _kAccessToken = 'access_token';
+
+  @override
+  Future<void> saveAccessToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kAccessToken, token);
+  }
+
+  @override
+  Future<String?> getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kAccessToken);
+  }
+
+  @override
+  Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kAccessToken);
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\network\supabase_endpoints.dart =====
+/// Centralized Supabase REST endpoints
+/// Used by Dio (Auth / PostgREST / Storage)
+///
+/// Base URL (example):
+///   https://xyzcompany.supabase.co
+///
+/// Full request example:
+///   POST {baseUrl}/auth/v1/token?grant_type=password
+///
+class SupabaseEndpoints {
+  SupabaseEndpoints._();
+
+  // =======================
+  // Auth (GoTrue)
+  // =======================
+
+  /// POST /auth/v1/signup
+  static const String authSignUp = '/auth/v1/signup';
+
+  /// POST /auth/v1/token?grant_type=password
+  static const String authToken = '/auth/v1/token';
+
+  /// GET /auth/v1/user
+  static const String authUser = '/auth/v1/user';
+
+  /// POST /auth/v1/logout
+  /// (Optional — usually not required for mobile apps)
+  static const String authLogout = '/auth/v1/logout';
+
+  // =======================
+  // Database (PostgREST)
+  // =======================
+
+  /// Base path for PostgREST
+  static const String rest = '/rest/v1';
+
+  /// Example usage:
+  ///   GET /rest/v1/profiles?select=*
+  ///   POST /rest/v1/profiles
+  static String table(String tableName) => '$rest/$tableName';
+
+  // =======================
+  // Storage
+  // =======================
+
+  /// Base path for Storage API
+  static const String storage = '/storage/v1';
+
+  /// List objects in bucket
+  /// GET /storage/v1/object/list/{bucket}
+  static String storageList(String bucket) =>
+      '$storage/object/list/$bucket';
+
+  /// Upload object
+  /// POST /storage/v1/object/{bucket}/{path}
+  static String storageUpload(String bucket, String path) =>
+      '$storage/object/$bucket/$path';
+
+  /// Download object (public or authorized)
+  /// GET /storage/v1/object/public/{bucket}/{path}
+  static String storagePublic(String bucket, String path) =>
+      '$storage/object/public/$bucket/$path';
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\router\app_router.dart =====
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/dashboard_screen.dart';
+import 'package:flutter/material.dart';
+
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/welcome_screen.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/login_screen.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/sign_up_screen.dart';
+
+class AppRoutes {
+  static const String welcome = '/';
+  static const String login = '/login';
+  static const String signUp = '/sign-up';
+
+  // ✅ New
+  static const String dashboard = '/dashboard';
+}
+
+class AppRouter {
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case AppRoutes.welcome:
+        return _material(const WelcomeScreen(), settings);
+
+      case AppRoutes.login:
+        return _material(const LoginScreen(), settings);
+
+      case AppRoutes.signUp:
+        return _material(const SignUpScreen(), settings);
+
+      // ✅ New
+      case AppRoutes.dashboard:
+        return _material(const DashboardScreen(), settings);
+
+      default:
+        return _unknownRoute(settings);
+    }
+  }
+
+  static MaterialPageRoute _material(Widget page, RouteSettings settings) {
+    return MaterialPageRoute(
+      builder: (_) => page,
+      settings: settings,
+    );
+  }
+
+  static Route<dynamic> _unknownRoute(RouteSettings settings) {
+    return MaterialPageRoute(
+      settings: settings,
+      builder: (_) => const Scaffold(
+        body: Center(child: Text('Route not found')),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\theme\app_theme.dart =====
+import 'package:flutter/material.dart';
+
+class AppSpacing {
+  static const double xs = 4;
+  static const double sm = 8;
+  static const double md = 16;
+  static const double lg = 24;
+  static const double xl = 32;
+  static const double xxl = 40;
+}
+
+class AppColors {
+  static const Color primary = Color(0xFF1A73E8);
+  static const Color primaryLight = Color(0xFFEEF5FF);
+  static const Color primaryDark = Color(0xFF0F4FB8);
+
+  static const Color secondary = Color(0xFFFF8A00);
+  static const Color secondaryLight = Color(0xFFFFF3E6);
+  static const Color secondaryDark = Color(0xFFCC6F00);
+
+  static const Color neutral900 = Color(0xFF212121);
+  static const Color neutral800 = Color(0xFF303030);
+  static const Color neutral700 = Color(0xFF424242);
+  static const Color neutral600 = Color(0xFF616161);
+  static const Color neutral500 = Color(0xFF757575);
+  static const Color neutral400 = Color(0xFF9E9E9E);
+  static const Color neutral300 = Color(0xFFBDBDBD);
+  static const Color neutral200 = Color(0xFFE0E0E0);
+  static const Color neutral100 = Color(0xFFEFEFEF);
+  static const Color neutral50 = Color(0xFFF7F7F7);
+
+  static const Color white = Colors.white;
+
+  static const Color success = Color(0xFF4CAF50);
+  static const Color error = Color(0xFFE53935);
+  static const Color warning = Color(0xFFFFC107);
+  static const Color info = Color(0xFF0288D1);
+}
+
+class AppTextStyles {
+  static const String _font = 'Roboto';
+
+  static TextStyle get display => const TextStyle(
+        fontFamily: _font,
+        fontSize: 34,
+        fontWeight: FontWeight.w700,
+        height: 1.2,
+        color: AppColors.neutral900,
+      );
+
+  static TextStyle get headline => const TextStyle(
+        fontFamily: _font,
+        fontSize: 24,
+        fontWeight: FontWeight.w600,
+        height: 1.3,
+        color: AppColors.neutral900,
+      );
+
+  static TextStyle get title => const TextStyle(
+        fontFamily: _font,
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        height: 1.3,
+        color: AppColors.neutral900,
+      );
+
+  static TextStyle get bodyLg => const TextStyle(
+        fontFamily: _font,
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        height: 1.4,
+        color: AppColors.neutral900,
+      );
+
+  static TextStyle get body => const TextStyle(
+        fontFamily: _font,
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        height: 1.4,
+        color: AppColors.neutral900,
+      );
+
+  static TextStyle get caption => const TextStyle(
+        fontFamily: _font,
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        height: 1.3,
+        color: AppColors.neutral600,
+      );
+}
+
+class AppRadius {
+  static const BorderRadius small = BorderRadius.all(Radius.circular(8));
+  static const BorderRadius medium = BorderRadius.all(Radius.circular(12));
+  static const BorderRadius large = BorderRadius.all(Radius.circular(20));
+  static const BorderRadius pill = BorderRadius.all(Radius.circular(100));
+}
+
+class AppShadows {
+  static List<BoxShadow> level1 = [
+    BoxShadow(
+      color: Colors.black.withOpacity(0.08),
+      blurRadius: 4,
+      offset: const Offset(0, 2),
+    ),
+  ];
+
+  static List<BoxShadow> level2 = [
+    BoxShadow(
+      color: Colors.black.withOpacity(0.12),
+      blurRadius: 12,
+      offset: const Offset(0, 4),
+    ),
+  ];
+
+  static List<BoxShadow> level3 = [
+    BoxShadow(
+      color: Colors.black.withOpacity(0.16),
+      blurRadius: 20,
+      offset: const Offset(0, 8),
+    ),
+  ];
+}
+
+class AppTheme {
+  static ThemeData get light {
+    final base = ThemeData.light(useMaterial3: false);
+
+    return base.copyWith(
+      scaffoldBackgroundColor: AppColors.white,
+      primaryColor: AppColors.primary,
+      colorScheme: base.colorScheme.copyWith(
+        primary: AppColors.primary,
+        secondary: AppColors.secondary,
+        error: AppColors.error,
+        surface: AppColors.white,
+        background: AppColors.white,
+        outline: AppColors.neutral300,
+        outlineVariant: AppColors.neutral200,
+        onSurfaceVariant: AppColors.neutral500,
+      ),
+      textTheme: base.textTheme.copyWith(
+        displayLarge: AppTextStyles.display,
+        headlineMedium: AppTextStyles.headline,
+        titleMedium: AppTextStyles.title,
+        bodyLarge: AppTextStyles.bodyLg,
+        bodyMedium: AppTextStyles.body,
+        bodySmall: AppTextStyles.caption,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          fontFamily: 'Roboto',
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: AppColors.neutral900,
+        ),
+        iconTheme: IconThemeData(color: AppColors.neutral900),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.white,
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.medium,
+          ),
+          textStyle: const TextStyle(
+            fontFamily: 'Roboto',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.neutral50,
+        contentPadding: const EdgeInsets.all(16),
+        border: OutlineInputBorder(
+          borderRadius: AppRadius.medium,
+          borderSide: const BorderSide(color: AppColors.neutral200),
+        ),
+        enabledBorder: const OutlineInputBorder(
+          borderRadius: AppRadius.medium,
+          borderSide: BorderSide(color: AppColors.neutral200),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: AppRadius.medium,
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        errorBorder: const OutlineInputBorder(
+          borderRadius: AppRadius.medium,
+          borderSide: BorderSide(color: AppColors.error),
+        ),
+        focusedErrorBorder: const OutlineInputBorder(
+          borderRadius: AppRadius.medium,
+          borderSide: BorderSide(color: AppColors.error, width: 1.5),
+        ),
+        hintStyle: AppTextStyles.body.copyWith(color: AppColors.neutral400),
+      ),
+      cardTheme: CardThemeData(
+        color: AppColors.white,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadius.large,
+          side: const BorderSide(color: AppColors.neutral200),
+        ),
+        shadowColor: Colors.black.withOpacity(0.12),
+      ),
+    );
+  }
+
+  static ThemeData get dark {
+    final base = ThemeData.dark(useMaterial3: false);
+
+    return base.copyWith(
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      primaryColor: AppColors.primary,
+      colorScheme: base.colorScheme.copyWith(
+        primary: AppColors.primary,
+        secondary: AppColors.secondary,
+        error: AppColors.error,
+        surface: const Color(0xFF1D1D1D),
+        background: const Color(0xFF121212),
+        outline: AppColors.neutral600,
+        outlineVariant: AppColors.neutral700,
+        onSurfaceVariant: AppColors.neutral400,
+      ),
+      textTheme: base.textTheme.apply(
+        fontFamily: 'Roboto',
+        bodyColor: AppColors.neutral100,
+        displayColor: AppColors.neutral100,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF121212),
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          fontFamily: 'Roboto',
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: AppColors.neutral100,
+        ),
+        iconTheme: IconThemeData(color: AppColors.neutral100),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF1D1D1D),
+        contentPadding: const EdgeInsets.all(16),
+        border: OutlineInputBorder(
+          borderRadius: AppRadius.medium,
+          borderSide: const BorderSide(color: AppColors.neutral600),
+        ),
+        enabledBorder: const OutlineInputBorder(
+          borderRadius: AppRadius.medium,
+          borderSide: BorderSide(color: AppColors.neutral600),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: AppRadius.medium,
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        hintStyle: AppTextStyles.body.copyWith(color: AppColors.neutral400),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\utils\app_validators.dart =====
+import 'package:email_validator/email_validator.dart';
+import 'package:finance_tracker_app/core/utils/validation_messages.dart';
+
+class AppValidators {
+  static String? email(String? value) {
+    final v = value?.trim();
+
+    if (v == null || v.isEmpty) {
+      return ValidationMessages.enterEmail;
+    }
+
+    if (!EmailValidator.validate(v)) {
+      return ValidationMessages.invalidEmail;
+    }
+
+    return null;
+  }
+
+  static String? password(String? value) {
+    if (value == null || value.isEmpty) {
+      return ValidationMessages.enterPassword;
+    }
+
+    if (value.length < 8) {
+      return ValidationMessages.shortPassword;
+    }
+
+    if (!RegExp(r'[A-Za-z]').hasMatch(value)) {
+      return ValidationMessages.passwordNeedLetter;
+    }
+
+    if (!RegExp(r'[0-9]').hasMatch(value)) {
+      return ValidationMessages.passwordNeedNumber;
+    }
+
+    return null;
+  }
+
+  static String? confirmPassword(String? value, String password) {
+    if (value == null || value.isEmpty) {
+      return ValidationMessages.confirmPassword;
+    }
+
+    if (value != password) {
+      return ValidationMessages.passwordMismatch;
+    }
+
+    return null;
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\core\utils\validation_messages.dart =====
+class ValidationMessages {
+  static const enterEmail = 'Please enter your email';
+  static const invalidEmail = 'Email format is invalid';
+
+  static const enterPassword = 'Please enter your password';
+  static const shortPassword = 'Password must be at least 8 characters';
+  static const passwordNeedLetter = 'Password must include at least one letter';
+  static const passwordNeedNumber = 'Password must include at least one number';
+
+  static const confirmPassword = 'Please confirm your password';
+  static const passwordMismatch = 'Password does not match';
+  
+  static const enterFullName = 'Please enter your full name';
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\data\models\auth_remote_data_source.dart =====
+import 'package:dio/dio.dart';
+import 'package:finance_tracker_app/core/error/exception_mapper.dart';
+import 'package:finance_tracker_app/core/network/supabase_endpoints.dart';
+
+class SignUpResult {
+  final bool emailConfirmationRequired;
+  final String? message;
+
+  const SignUpResult({
+    required this.emailConfirmationRequired,
+    this.message,
+  });
+}
+
+abstract class AuthRemoteDataSource {
+  Future<SignUpResult> signup({
+    required String fullName,
+    required String email,
+    required String password,
+  });
+
+  Future<String> login({
+    required String email,
+    required String password,
+  });
+
+  Future<Map<String, dynamic>> getMe();
+}
+
+class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
+  final Dio dio;
+  AuthRemoteDataSourceImpl(this.dio);
+
+  @override
+  Future<SignUpResult> signup({
+    required String fullName,
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final res = await dio.post(
+        SupabaseEndpoints.authSignUp,
+        data: {
+          'email': email,
+          'password': password,
+          'data': {'full_name': fullName},
+        },
+      );
+
+      // Supabase thường trả user/session (tuỳ settings)
+      // Nếu bật email confirm, thường session = null => yêu cầu verify email
+      final data = res.data;
+      final session = (data is Map<String, dynamic>) ? data['session'] : null;
+
+      final requiresConfirm = session == null;
+
+      return SignUpResult(
+        emailConfirmationRequired: requiresConfirm,
+        message: requiresConfirm
+            ? 'Sign up successful. Please verify your email before logging in.'
+            : 'Sign up successful.',
+      );
+    } catch (e) {
+      throw ExceptionMapper.map(e);
+    }
+  }
+
+  @override
+  Future<String> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final res = await dio.post(
+        SupabaseEndpoints.authToken,
+        queryParameters: {'grant_type': 'password'},
+        data: {'email': email, 'password': password},
+      );
+
+      final json = res.data as Map<String, dynamic>;
+      final token = (json['access_token'] ?? '').toString();
+
+      if (token.isEmpty) {
+        throw ExceptionMapper.map(
+          DioException(
+            requestOptions: res.requestOptions,
+            response: res,
+            error: 'Missing access_token',
+            type: DioExceptionType.badResponse,
+          ),
+        );
+      }
+
+      return token;
+    } catch (e) {
+      throw ExceptionMapper.map(e);
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> getMe() async {
+    try {
+      final res = await dio.get(SupabaseEndpoints.authUser);
+      return res.data as Map<String, dynamic>;
+    } catch (e) {
+      throw ExceptionMapper.map(e);
+    }
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\data\repositories\auth_repository_impl.dart =====
+import 'package:finance_tracker_app/core/error/exceptions.dart';
+import 'package:finance_tracker_app/core/network/session_local_data_source.dart';
+import 'package:finance_tracker_app/feature/users/auth/data/models/auth_remote_data_source.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/repositories/auth_repository.dart';
+
+class AuthRepositoryImpl implements AuthRepository {
+  final AuthRemoteDataSource remote;
+  final SessionLocalDataSource sessionLocal;
+
+  AuthRepositoryImpl({
+    required this.remote,
+    required this.sessionLocal,
+  });
+
+  @override
+  Future<UserModel> signup({
+    required String email,
+    required String password,
+    required String fullName,
+  }) async {
+    final result = await remote.signup(
+      fullName: fullName,
+      email: email,
+      password: password,
+    );
+
+    // ✅ Bật email confirm => không login ngay
+    if (result.emailConfirmationRequired) {
+      throw AuthException(
+        result.message ??
+            'Sign up successful. Please verify your email before logging in.',
+      );
+    }
+
+    // Nếu project bạn tắt confirm email (session có sẵn) thì có thể auto login:
+    final token = await remote.login(email: email, password: password);
+    await sessionLocal.saveAccessToken(token);
+
+    final me = await remote.getMe();
+    return UserModel.fromJson({
+      'id': me['id'],
+      'email': me['email'],
+      'fullName': (me['user_metadata']?['full_name']) as String?,
+    });
+  }
+
+  @override
+  Future<UserModel> login({
+    required String email,
+    required String password,
+  }) async {
+    final token = await remote.login(email: email, password: password);
+    await sessionLocal.saveAccessToken(token);
+
+    final me = await remote.getMe();
+    return UserModel(
+      id: (me['id'] ?? '').toString(),
+      email: (me['email'] ?? '').toString(),
+      fullName: (me['user_metadata']?['full_name']) as String?,
+    );
+  }
+
+  @override
+  Future<void> logout() async {
+    await sessionLocal.clear();
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\domain\entities\user_model.dart =====
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'user_model.freezed.dart';
+part 'user_model.g.dart';
+
+@freezed
+abstract class UserModel with _$UserModel {
+  const factory UserModel({
+    required String id,
+    required String email,
+    String? fullName,
+  }) = _UserModel;
+
+  factory UserModel.fromJson(Map<String, dynamic> json) =>
+      _$UserModelFromJson(json);
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\domain\entities\user_model.freezed.dart =====
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
+
+part of 'user_model.dart';
+
+// **************************************************************************
+// FreezedGenerator
+// **************************************************************************
+
+// dart format off
+T _$identity<T>(T value) => value;
+
+/// @nodoc
+mixin _$UserModel {
+
+ String get id; String get email; String? get fullName;
+/// Create a copy of UserModel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UserModelCopyWith<UserModel> get copyWith => _$UserModelCopyWithImpl<UserModel>(this as UserModel, _$identity);
+
+  /// Serializes this UserModel to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.fullName, fullName) || other.fullName == fullName));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,email,fullName);
+
+@override
+String toString() {
+  return 'UserModel(id: $id, email: $email, fullName: $fullName)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $UserModelCopyWith<$Res>  {
+  factory $UserModelCopyWith(UserModel value, $Res Function(UserModel) _then) = _$UserModelCopyWithImpl;
+@useResult
+$Res call({
+ String id, String email, String? fullName
+});
+
+
+
+
+}
+/// @nodoc
+class _$UserModelCopyWithImpl<$Res>
+    implements $UserModelCopyWith<$Res> {
+  _$UserModelCopyWithImpl(this._self, this._then);
+
+  final UserModel _self;
+  final $Res Function(UserModel) _then;
+
+/// Create a copy of UserModel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? fullName = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,fullName: freezed == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [UserModel].
+extension UserModelPatterns on UserModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _UserModel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _UserModel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _UserModel value)  $default,){
+final _that = this;
+switch (_that) {
+case _UserModel():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _UserModel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _UserModel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String email,  String? fullName)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _UserModel() when $default != null:
+return $default(_that.id,_that.email,_that.fullName);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String email,  String? fullName)  $default,) {final _that = this;
+switch (_that) {
+case _UserModel():
+return $default(_that.id,_that.email,_that.fullName);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String email,  String? fullName)?  $default,) {final _that = this;
+switch (_that) {
+case _UserModel() when $default != null:
+return $default(_that.id,_that.email,_that.fullName);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _UserModel implements UserModel {
+  const _UserModel({required this.id, required this.email, this.fullName});
+  factory _UserModel.fromJson(Map<String, dynamic> json) => _$UserModelFromJson(json);
+
+@override final  String id;
+@override final  String email;
+@override final  String? fullName;
+
+/// Create a copy of UserModel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$UserModelCopyWith<_UserModel> get copyWith => __$UserModelCopyWithImpl<_UserModel>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$UserModelToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.fullName, fullName) || other.fullName == fullName));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,email,fullName);
+
+@override
+String toString() {
+  return 'UserModel(id: $id, email: $email, fullName: $fullName)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$UserModelCopyWith<$Res> implements $UserModelCopyWith<$Res> {
+  factory _$UserModelCopyWith(_UserModel value, $Res Function(_UserModel) _then) = __$UserModelCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String email, String? fullName
+});
+
+
+
+
+}
+/// @nodoc
+class __$UserModelCopyWithImpl<$Res>
+    implements _$UserModelCopyWith<$Res> {
+  __$UserModelCopyWithImpl(this._self, this._then);
+
+  final _UserModel _self;
+  final $Res Function(_UserModel) _then;
+
+/// Create a copy of UserModel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? email = null,Object? fullName = freezed,}) {
+  return _then(_UserModel(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,fullName: freezed == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+// dart format on
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\domain\entities\user_model.g.dart =====
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'user_model.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_UserModel _$UserModelFromJson(Map<String, dynamic> json) => _UserModel(
+  id: json['id'] as String,
+  email: json['email'] as String,
+  fullName: json['fullName'] as String?,
+);
+
+Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'email': instance.email,
+      'fullName': instance.fullName,
+    };
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\domain\repositories\auth_repository.dart =====
+import '../entities/user_model.dart';
+
+abstract class AuthRepository {
+  Future<UserModel> login({required String email, required String password});
+  Future<UserModel> signup({
+    required String email,
+    required String password,
+    required String fullName,
+  });
+  Future<void> logout();
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\domain\usecases\login.dart =====
+import 'package:finance_tracker_app/core/error/exceptions.dart';
+import '../entities/user_model.dart';
+import '../repositories/auth_repository.dart';
+
+class Login {
+  final AuthRepository repository;
+  Login(this.repository);
+
+  Future<UserModel> call({required String email, required String password}) {
+    if (email.trim().isEmpty) {
+      throw const ValidationException('Email cannot be empty');
+    }
+
+    if (!email.contains('@') || !email.contains('.')) {
+      throw const ValidationException('Invalid email format');
+    }
+
+    if (password.isEmpty) {
+      throw const ValidationException('Password cannot be empty');
+    }
+
+    if (password.length < 8) {
+      throw const ValidationException('Password must be at least 8 characters');
+    }
+
+    return repository.login(email: email, password: password);
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\domain\usecases\sign_up.dart =====
+import 'package:finance_tracker_app/core/error/exceptions.dart';
+import 'package:finance_tracker_app/core/utils/validation_messages.dart';
+
+import '../entities/user_model.dart';
+import '../repositories/auth_repository.dart';
+
+class Signup {
+  final AuthRepository repository;
+
+  Signup(this.repository);
+
+  Future<UserModel> call({
+    required String email,
+    required String password,
+    required String fullName,
+  }) {
+    final trimmedEmail = email.trim();
+    final trimmedName = fullName.trim();
+
+    _validateFullName(trimmedName);
+    _validateEmail(trimmedEmail);
+    _validatePassword(password);
+
+    return repository.signup(
+      email: trimmedEmail,
+      password: password,
+      fullName: trimmedName,
+    );
+  }
+
+
+  void _validateFullName(String name) {
+    if (name.isEmpty) {
+      throw const ValidationException(
+        ValidationMessages.enterFullName,
+      );
+    }
+  }
+
+  void _validateEmail(String email) {
+    if (email.isEmpty) {
+      throw const ValidationException(
+        ValidationMessages.enterEmail,
+      );
+    }
+
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    if (!emailRegex.hasMatch(email)) {
+      throw const ValidationException(
+        ValidationMessages.invalidEmail,
+      );
+    }
+  }
+
+  void _validatePassword(String password) {
+    if (password.isEmpty) {
+      throw const ValidationException(
+        ValidationMessages.enterPassword,
+      );
+    }
+
+    if (password.length < 8) {
+      throw const ValidationException(
+        ValidationMessages.shortPassword,
+      );
+    }
+
+    if (!RegExp(r'[A-Za-z]').hasMatch(password)) {
+      throw const ValidationException(
+        ValidationMessages.passwordNeedLetter,
+      );
+    }
+
+    if (!RegExp(r'[0-9]').hasMatch(password)) {
+      throw const ValidationException(
+        ValidationMessages.passwordNeedNumber,
+      );
+    }
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\cubit\auth_cubit.dart =====
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart';
+
+import 'auth_state.dart';
+import '../../domain/usecases/login.dart';
+import '../../domain/usecases/sign_up.dart';
+import 'package:finance_tracker_app/core/error/exceptions.dart';
+
+class AuthCubit extends Cubit<AuthState> {
+  final Login _login;
+  final Signup _signup;
+  final Logger _logger;
+
+  AuthCubit({required Login login, required Signup signup, Logger? logger})
+    : _login = login,
+      _signup = signup,
+      _logger = logger ?? Logger(),
+      super(AuthInitial());
+
+  Future<void> login(String email, String password) async {
+    if (state is AuthSuccess) {
+      emit(AuthFailure('You are already logged in.'));
+      return;
+    }
+
+    await _runAuthAction(
+      actionLabel: 'login',
+      action: () => _login(email: email, password: password),
+      successMessage: 'Login success',
+    );
+  }
+
+  Future<void> signup(String fullName, String email, String password) async {
+    await _runAuthAction(
+      actionLabel: 'signup',
+      action: () =>
+          _signup(fullName: fullName, email: email, password: password),
+      successMessage: 'Signup success',
+    );
+  }
+
+  Future<void> _runAuthAction({
+    required String actionLabel,
+    required Future<dynamic> Function() action,
+    required String successMessage,
+  }) async {
+    emit(AuthLoading());
+
+    const maxAttempts = 2;
+    var attempt = 0;
+
+    while (true) {
+      try {
+        final user = await action();
+        _logger.i('$successMessage: ${user.email}', error: null);
+        emit(AuthSuccess(user));
+        return;
+      } on NetworkException catch (e) {
+        attempt++;
+        _logger.w(
+          'NetworkException on $actionLabel attempt $attempt: ${e.message}',
+        );
+        if (attempt >= maxAttempts) {
+          emit(AuthFailure(e.message));
+          return;
+        }
+      } on TimeoutRequestException catch (e) {
+        attempt++;
+        _logger.w(
+          'TimeoutRequestException on $actionLabel attempt $attempt: ${e.message}',
+        );
+        if (attempt >= maxAttempts) {
+          emit(AuthFailure(e.message));
+          return;
+        }
+      } on AuthException catch (e) {
+        _logger.w('AuthException on $actionLabel: ${e.message}');
+        emit(AuthFailure(e.message));
+        return;
+      } on AppException catch (e) {
+        _logger.w('AppException on $actionLabel: ${e.message}');
+        emit(AuthFailure(e.message));
+        return;
+      } catch (e, s) {
+        _logger.e('Unexpected error on $actionLabel', error: e, stackTrace: s);
+        emit(AuthFailure('Unexpected error. Please try again.'));
+        return;
+      }
+    }
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\cubit\auth_state.dart =====
+import 'package:equatable/equatable.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
+
+sealed class AuthState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+class AuthInitial extends AuthState {}
+
+class AuthLoading extends AuthState {}
+
+class AuthSuccess extends AuthState {
+  final UserModel user;
+  AuthSuccess(this.user);
+
+  @override
+  List<Object?> get props => [user];
+}
+
+class AuthFailure extends AuthState {
+  final String message;
+  AuthFailure(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\dashboard_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Dashboard'),
+      ),
+      body: const Center(
+        child: Text('Welcome to the Dashboard!'),
+      ),
+    );
+  }
+}
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\login_screen.dart =====
+import 'package:finance_tracker_app/core/utils/app_validators.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:finance_tracker_app/core/router/app_router.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  bool _isPasswordHidden = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _onLoginPressed(bool isLoading) {
+    if (isLoading) return;
+
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) return;
+
+    context.read<AuthCubit>().login(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final loginImage = Assets.images.loginImg.image(
+      width: 240,
+      height: 120,
+      fit: BoxFit.contain,
+    );
+
+    return Scaffold(
+      backgroundColor: colorScheme.background,
+      body: SafeArea(
+        child: BlocConsumer<AuthCubit, AuthState>(
+          listener: (context, state) {
+            if (state is AuthFailure) {
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(
+                  SnackBar(content: Text(state.message)),
+                );
+              return;
+            }
+
+            if (state is AuthSuccess) {
+              // ✅ LOGIN THÀNH CÔNG → DASHBOARD (clear stack)
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.dashboard,
+                (_) => false,
+              );
+            }
+          },
+          builder: (context, state) {
+            final isLoading = state is AuthLoading;
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 40),
+                    Text(
+                      'Welcome to Personal\nFinance Tracker',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onBackground,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    Center(child: loginImage),
+                    const SizedBox(height: 32),
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: AppValidators.email,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _isPasswordHidden,
+                      keyboardType: TextInputType.visiblePassword,
+                      validator: AppValidators.password,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordHidden
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordHidden = !_isPasswordHidden;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () => _onLoginPressed(isLoading),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Login',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Don't have an account? ",
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, AppRoutes.signUp);
+                          },
+                          child: Text(
+                            "Register",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\sign_up_screen.dart =====
+import 'package:finance_tracker_app/core/theme/app_theme.dart';
+import 'package:finance_tracker_app/core/utils/app_validators.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
+import 'package:finance_tracker_app/shared/widgets/ui_kit.dart';
+
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
+  @override
+  State<SignUpScreen> createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  final _fullNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _onSignUpPressed(BuildContext context, bool isLoading) {
+    if (isLoading) return;
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) return;
+
+    context.read<AuthCubit>().signup(
+      _fullNameController.text.trim(),
+      _emailController.text.trim(),
+      _passwordController.text,
+    );
+  }
+
+  void _showSnack(String msg) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final ts = theme.textTheme;
+
+    final signUpImage = Assets.images.signUpImg.image(
+      width: 240,
+      height: 120,
+      fit: BoxFit.contain,
+    );
+
+    return Scaffold(
+      body: SafeArea(
+        child: BlocConsumer<AuthCubit, AuthState>(
+          listener: (context, state) async {
+            if (state is AuthFailure) {
+              _showSnack(state.message);
+            }
+            if (state is AuthSuccess) {
+              _showSnack('Sign up successful. Please login.');
+              await Future.delayed(const Duration(milliseconds: 800));
+              if (!mounted) return;
+              Navigator.pushReplacementNamed(context, AppRoutes.login);
+            }
+          },
+          builder: (context, state) {
+            final isLoading = state is AuthLoading;
+
+            return Stack(
+              children: [
+                Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          const SizedBox(height: AppSpacing.lg),
+                          Text(
+                            'Sign Up',
+                            style: ts.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                          signUpImage,
+                          const SizedBox(height: AppSpacing.xl),
+                          AppValidatedTextField(
+                            controller: _fullNameController,
+                            label: 'Full Name',
+                            keyboardType: TextInputType.name,
+                            validator: (value) =>
+                                value == null || value.trim().isEmpty
+                                ? 'Please enter your full name'
+                                : null,
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          AppValidatedTextField(
+                            controller: _emailController,
+                            label: 'Email',
+                            keyboardType: TextInputType.emailAddress,
+                            validator: AppValidators.email,
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          AppValidatedTextField(
+                            controller: _passwordController,
+                            label: 'Password',
+                            obscureText: !_showPassword,
+                            validator: AppValidators.password,
+                            keyboardType: TextInputType.visiblePassword,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _showPassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: cs.onSurfaceVariant,
+                              ),
+                              onPressed: () => setState(
+                                () => _showPassword = !_showPassword,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          AppValidatedTextField(
+                            controller: _confirmPasswordController,
+                            label: 'Confirm password',
+                            obscureText: !_showConfirmPassword,
+                            validator: (value) => AppValidators.confirmPassword(
+                              value,
+                              _passwordController.text,
+                            ),
+                            keyboardType: TextInputType.visiblePassword,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _showConfirmPassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: cs.onSurfaceVariant,
+                              ),
+                              onPressed: () => setState(
+                                () => _showConfirmPassword =
+                                    !_showConfirmPassword,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                          SizedBox(
+                            width: double.infinity,
+                            height: AppSpacing.xxl,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: cs.primary,
+                                foregroundColor: cs.onPrimary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: () =>
+                                  _onSignUpPressed(context, isLoading),
+                              child: isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation(
+                                          Colors.white,
+                                        ),
+                                      ),
+                                    )
+                                  : Text(
+                                      'Sign Up',
+                                      style: ts.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Already have an account?",
+                                style: ts.bodyMedium,
+                              ),
+                              const SizedBox(width: AppSpacing.xs),
+                              GestureDetector(
+                                onTap: () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.login,
+                                ),
+                                child: Text(
+                                  "Login",
+                                  style: ts.bodyMedium?.copyWith(
+                                    color: cs.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (isLoading)
+                  Positioned.fill(
+                    child: AbsorbPointer(
+                      absorbing: true,
+                      child: Container(
+                        color: Colors.black.withOpacity(0.2),
+                        alignment: Alignment.center,
+                        child: const SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\feature\users\auth\presentation\pages\welcome_screen.dart =====
+import 'package:flutter/material.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart';
+
+class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final wallet = Assets.icons.walletSolid.svg(
+      width: 200,
+      height: 200,
+      colorFilter: const ColorFilter.mode(Colors.green, BlendMode.srcIn),
+    );
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                wallet,
+
+                const SizedBox(height: 24),
+
+                const Text(
+                  'Welcome',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
+
+                const SizedBox(height: 12),
+
+                const Text(
+                  'Take control of your finances with us.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRoutes.login);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Get Started',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\gen\assets.gen.dart =====
+// dart format width=80
+
+/// GENERATED CODE - DO NOT MODIFY BY HAND
+/// *****************************************************
+///  FlutterGen
+/// *****************************************************
+
+// coverage:ignore-file
+// ignore_for_file: type=lint
+// ignore_for_file: deprecated_member_use,directives_ordering,implicit_dynamic_list_literal,unnecessary_import
+
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart' as _svg;
+import 'package:vector_graphics/vector_graphics.dart' as _vg;
+
+class $AssetsIconsGen {
+  const $AssetsIconsGen();
+
+  /// File path: assets/icons/wallet-solid.svg
+  SvgGenImage get walletSolid =>
+      const SvgGenImage('assets/icons/wallet-solid.svg');
+
+  /// List of all assets
+  List<SvgGenImage> get values => [walletSolid];
+}
+
+class $AssetsImagesGen {
+  const $AssetsImagesGen();
+
+  /// File path: assets/images/login_img.png
+  AssetGenImage get loginImg =>
+      const AssetGenImage('assets/images/login_img.png');
+
+  /// File path: assets/images/sign_up_img.png
+  AssetGenImage get signUpImg =>
+      const AssetGenImage('assets/images/sign_up_img.png');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [loginImg, signUpImg];
+}
+
+class Assets {
+  const Assets._();
+
+  static const String aEnv = '.env';
+  static const $AssetsIconsGen icons = $AssetsIconsGen();
+  static const $AssetsImagesGen images = $AssetsImagesGen();
+
+  /// List of all assets
+  static List<String> get values => [aEnv];
+}
+
+class AssetGenImage {
+  const AssetGenImage(
+    this._assetName, {
+    this.size,
+    this.flavors = const {},
+    this.animation,
+  });
+
+  final String _assetName;
+
+  final Size? size;
+  final Set<String> flavors;
+  final AssetGenImageAnimation? animation;
+
+  Image image({
+    Key? key,
+    AssetBundle? bundle,
+    ImageFrameBuilder? frameBuilder,
+    ImageErrorWidgetBuilder? errorBuilder,
+    String? semanticLabel,
+    bool excludeFromSemantics = false,
+    double? scale,
+    double? width,
+    double? height,
+    Color? color,
+    Animation<double>? opacity,
+    BlendMode? colorBlendMode,
+    BoxFit? fit,
+    AlignmentGeometry alignment = Alignment.center,
+    ImageRepeat repeat = ImageRepeat.noRepeat,
+    Rect? centerSlice,
+    bool matchTextDirection = false,
+    bool gaplessPlayback = true,
+    bool isAntiAlias = false,
+    String? package,
+    FilterQuality filterQuality = FilterQuality.medium,
+    int? cacheWidth,
+    int? cacheHeight,
+  }) {
+    return Image.asset(
+      _assetName,
+      key: key,
+      bundle: bundle,
+      frameBuilder: frameBuilder,
+      errorBuilder: errorBuilder,
+      semanticLabel: semanticLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      scale: scale,
+      width: width,
+      height: height,
+      color: color,
+      opacity: opacity,
+      colorBlendMode: colorBlendMode,
+      fit: fit,
+      alignment: alignment,
+      repeat: repeat,
+      centerSlice: centerSlice,
+      matchTextDirection: matchTextDirection,
+      gaplessPlayback: gaplessPlayback,
+      isAntiAlias: isAntiAlias,
+      package: package,
+      filterQuality: filterQuality,
+      cacheWidth: cacheWidth,
+      cacheHeight: cacheHeight,
+    );
+  }
+
+  ImageProvider provider({AssetBundle? bundle, String? package}) {
+    return AssetImage(_assetName, bundle: bundle, package: package);
+  }
+
+  String get path => _assetName;
+
+  String get keyName => _assetName;
+}
+
+class AssetGenImageAnimation {
+  const AssetGenImageAnimation({
+    required this.isAnimation,
+    required this.duration,
+    required this.frames,
+  });
+
+  final bool isAnimation;
+  final Duration duration;
+  final int frames;
+}
+
+class SvgGenImage {
+  const SvgGenImage(this._assetName, {this.size, this.flavors = const {}})
+    : _isVecFormat = false;
+
+  const SvgGenImage.vec(this._assetName, {this.size, this.flavors = const {}})
+    : _isVecFormat = true;
+
+  final String _assetName;
+  final Size? size;
+  final Set<String> flavors;
+  final bool _isVecFormat;
+
+  _svg.SvgPicture svg({
+    Key? key,
+    bool matchTextDirection = false,
+    AssetBundle? bundle,
+    String? package,
+    double? width,
+    double? height,
+    BoxFit fit = BoxFit.contain,
+    AlignmentGeometry alignment = Alignment.center,
+    bool allowDrawingOutsideViewBox = false,
+    WidgetBuilder? placeholderBuilder,
+    String? semanticsLabel,
+    bool excludeFromSemantics = false,
+    _svg.SvgTheme? theme,
+    _svg.ColorMapper? colorMapper,
+    ColorFilter? colorFilter,
+    Clip clipBehavior = Clip.hardEdge,
+    @deprecated Color? color,
+    @deprecated BlendMode colorBlendMode = BlendMode.srcIn,
+    @deprecated bool cacheColorFilter = false,
+  }) {
+    final _svg.BytesLoader loader;
+    if (_isVecFormat) {
+      loader = _vg.AssetBytesLoader(
+        _assetName,
+        assetBundle: bundle,
+        packageName: package,
+      );
+    } else {
+      loader = _svg.SvgAssetLoader(
+        _assetName,
+        assetBundle: bundle,
+        packageName: package,
+        theme: theme,
+        colorMapper: colorMapper,
+      );
+    }
+    return _svg.SvgPicture(
+      loader,
+      key: key,
+      matchTextDirection: matchTextDirection,
+      width: width,
+      height: height,
+      fit: fit,
+      alignment: alignment,
+      allowDrawingOutsideViewBox: allowDrawingOutsideViewBox,
+      placeholderBuilder: placeholderBuilder,
+      semanticsLabel: semanticsLabel,
+      excludeFromSemantics: excludeFromSemantics,
+      colorFilter:
+          colorFilter ??
+          (color == null ? null : ColorFilter.mode(color, colorBlendMode)),
+      clipBehavior: clipBehavior,
+      cacheColorFilter: cacheColorFilter,
+    );
+  }
+
+  String get path => _assetName;
+
+  String get keyName => _assetName;
+}
+
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\ui_kit.dart =====
+library ui_kit;
+
+export 'button/primary_button.dart';
+export 'button/secondary_button.dart';
+export 'button/icon_button.dart';
+export 'button/loading_button.dart';
+
+export 'input/app_validated_text_field.dart';
+export 'input/app_password_field.dart';
+export 'input/amount_input.dart';
+export 'input/app_dropdown.dart'; 
+
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\icon_button.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\loading_button.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\primary_button.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\button\secondary_button.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\input\amount_input.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\input\app_dropdown.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\input\app_password_field.dart =====
+\n
+===== C:\Works\finance_tracking_app\lib\shared\widgets\input\app_validated_text_field.dart =====
+import 'package:finance_tracker_app/core/theme/app_theme.dart';
+import 'package:flutter/material.dart';
+
+class AppValidatedTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final String? hintText;
+  final String? Function(String?)? validator;
+  final bool obscureText;
+  final Widget? suffixIcon;
+  final TextInputType keyboardType;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onChanged;
+  final bool enabled;
+
+  const AppValidatedTextField({
+    super.key,
+    required this.controller,
+    required this.label,
+    this.hintText,
+    this.validator,
+    this.obscureText = false,
+    this.suffixIcon,
+    this.keyboardType = TextInputType.text,
+    this.textInputAction,
+    this.onChanged,
+    this.enabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    OutlineInputBorder border(Color color) => OutlineInputBorder(
+      borderRadius: AppRadius.medium,
+      borderSide: BorderSide(color: color, width: 1),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+            color: cs.onBackground,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          obscureText: obscureText,
+          validator: validator,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          onChanged: onChanged,
+          enabled: enabled,
+          decoration: InputDecoration(
+            hintText: hintText ?? label,
+            hintStyle: theme.textTheme.bodyMedium?.copyWith(
+              color: cs.onSurfaceVariant,
+            ),
+            contentPadding: const EdgeInsets.all(16),
+            suffixIcon: suffixIcon,
+            border: border(cs.outline),
+            enabledBorder: border(cs.outline),
+            focusedBorder: border(cs.primary),
+            errorBorder: border(cs.error),
+            focusedErrorBorder: border(cs.error),
+            disabledBorder: border(cs.outlineVariant),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+\n

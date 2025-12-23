@@ -1,64 +1,59 @@
 import 'package:flutter/material.dart';
-import 'package:finance_tracker_app/gen/assets.gen.dart';
+
+import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/router/app_router.dart';
+import 'package:finance_tracker_app/core/theme/app_theme.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final ts = theme.textTheme;
+    final cs = theme.colorScheme;
+
     final wallet = Assets.icons.walletSolid.svg(
       width: 200,
       height: 200,
-      colorFilter: const ColorFilter.mode(Colors.green, BlendMode.srcIn),
+      colorFilter: ColorFilter.mode(cs.primary, BlendMode.srcIn),
     );
 
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 wallet,
-
-                const SizedBox(height: 24),
-
-                const Text(
-                  'Welcome',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  AppStrings.welcome,
+                  style: ts.headlineMedium,
                 ),
-
-                const SizedBox(height: 12),
-
-                const Text(
-                  'Take control of your finances with us.',
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  AppStrings.welcomeSubtitle,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  style: ts.bodyLarge?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
-
-                const SizedBox(height: 32),
+                const SizedBox(height: AppSpacing.xl),
                 SizedBox(
                   width: double.infinity,
-                  height: 52,
+                  height: AppSpacing.xxl,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, AppRoutes.login);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      AppRoutes.login,
                     ),
-                    child: const Text(
-                      'Get Started',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Text(
+                      AppStrings.getStarted,
+                      style: ts.titleMedium,
                     ),
                   ),
                 ),

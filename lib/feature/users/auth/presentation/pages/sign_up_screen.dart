@@ -1,10 +1,11 @@
-import 'package:finance_tracker_app/core/theme/app_theme.dart';
-import 'package:finance_tracker_app/core/utils/app_validators.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:finance_tracker_app/gen/assets.gen.dart';
+import 'package:finance_tracker_app/core/constants/strings.dart';
+import 'package:finance_tracker_app/core/theme/app_theme.dart';
 import 'package:finance_tracker_app/core/router/app_router.dart';
+import 'package:finance_tracker_app/core/utils/app_validators.dart';
+import 'package:finance_tracker_app/gen/assets.gen.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
 import 'package:finance_tracker_app/shared/widgets/ui_kit.dart';
@@ -36,16 +37,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  void _onSignUpPressed(BuildContext context, bool isLoading) {
+  void _onSignUpPressed(bool isLoading) {
     if (isLoading) return;
+
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
 
     context.read<AuthCubit>().signup(
-      _fullNameController.text.trim(),
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
+          _fullNameController.text.trim(),
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
   }
 
   void _showSnack(String msg) {
@@ -57,14 +59,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final ts = theme.textTheme;
-
-    final signUpImage = Assets.images.signUpImg.image(
-      width: 240,
-      height: 120,
-      fit: BoxFit.contain,
-    );
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       body: SafeArea(
@@ -73,8 +69,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
             if (state is AuthFailure) {
               _showSnack(state.message);
             }
+
             if (state is AuthSuccess) {
-              _showSnack('Sign up successful. Please login.');
+              _showSnack(AppStrings.signUpSuccess);
               await Future.delayed(const Duration(milliseconds: 800));
               if (!mounted) return;
               Navigator.pushReplacementNamed(context, AppRoutes.login);
@@ -93,46 +90,49 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: Form(
                       key: _formKey,
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           const SizedBox(height: AppSpacing.lg),
                           Text(
-                            'Sign Up',
-                            style: ts.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            AppStrings.signUpTitle,
+                            textAlign: TextAlign.center,
+                            style: textTheme.headlineMedium,
                           ),
                           const SizedBox(height: AppSpacing.lg),
-                          signUpImage,
+                          Assets.images.signUpImg.image(
+                            width: 240,
+                            height: 120,
+                            fit: BoxFit.contain,
+                          ),
                           const SizedBox(height: AppSpacing.xl),
                           AppValidatedTextField(
                             controller: _fullNameController,
-                            label: 'Full Name',
+                            label: AppStrings.fullNameLabel,
                             keyboardType: TextInputType.name,
                             validator: (value) =>
                                 value == null || value.trim().isEmpty
-                                ? 'Please enter your full name'
-                                : null,
+                                    ? AppStrings.fullNameRequired
+                                    : null,
                           ),
                           const SizedBox(height: AppSpacing.md),
                           AppValidatedTextField(
                             controller: _emailController,
-                            label: 'Email',
+                            label: AppStrings.emailLabel,
                             keyboardType: TextInputType.emailAddress,
                             validator: AppValidators.email,
                           ),
                           const SizedBox(height: AppSpacing.md),
                           AppValidatedTextField(
                             controller: _passwordController,
-                            label: 'Password',
+                            label: AppStrings.passwordLabel,
                             obscureText: !_showPassword,
-                            validator: AppValidators.password,
                             keyboardType: TextInputType.visiblePassword,
+                            validator: AppValidators.password,
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _showPassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: cs.onSurfaceVariant,
                               ),
                               onPressed: () => setState(
                                 () => _showPassword = !_showPassword,
@@ -142,19 +142,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           const SizedBox(height: AppSpacing.md),
                           AppValidatedTextField(
                             controller: _confirmPasswordController,
-                            label: 'Confirm password',
+                            label: AppStrings.confirmPasswordLabel,
                             obscureText: !_showConfirmPassword,
-                            validator: (value) => AppValidators.confirmPassword(
+                            keyboardType: TextInputType.visiblePassword,
+                            validator: (value) =>
+                                AppValidators.confirmPassword(
                               value,
                               _passwordController.text,
                             ),
-                            keyboardType: TextInputType.visiblePassword,
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _showConfirmPassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: cs.onSurfaceVariant,
                               ),
                               onPressed: () => setState(
                                 () => _showConfirmPassword =
@@ -164,34 +164,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                           const SizedBox(height: AppSpacing.lg),
                           SizedBox(
-                            width: double.infinity,
                             height: AppSpacing.xxl,
                             child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: cs.primary,
-                                foregroundColor: cs.onPrimary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
                               onPressed: () =>
-                                  _onSignUpPressed(context, isLoading),
+                                  _onSignUpPressed(isLoading),
                               child: isLoading
                                   ? const SizedBox(
                                       width: 20,
                                       height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation(
-                                          Colors.white,
-                                        ),
                                       ),
                                     )
                                   : Text(
-                                      'Sign Up',
-                                      style: ts.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      AppStrings.signUpTitle,
+                                      style: textTheme.titleMedium,
                                     ),
                             ),
                           ),
@@ -200,8 +187,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                "Already have an account?",
-                                style: ts.bodyMedium,
+                                AppStrings.alreadyHaveAccount,
+                                style: textTheme.bodyMedium,
                               ),
                               const SizedBox(width: AppSpacing.xs),
                               GestureDetector(
@@ -210,9 +197,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   AppRoutes.login,
                                 ),
                                 child: Text(
-                                  "Login",
-                                  style: ts.bodyMedium?.copyWith(
-                                    color: cs.primary,
+                                  AppStrings.login,
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.primary,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -232,11 +219,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       child: Container(
                         color: Colors.black.withOpacity(0.2),
                         alignment: Alignment.center,
-                        child: const SizedBox(
-                          width: 36,
-                          height: 36,
-                          child: CircularProgressIndicator(strokeWidth: 3),
-                        ),
+                        child: const CircularProgressIndicator(),
                       ),
                     ),
                   ),

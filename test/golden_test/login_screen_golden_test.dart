@@ -6,7 +6,7 @@ import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/theme/app_theme.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/pages/sign_up_screen.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/login_screen.dart';
 
 class FakeAuthCubit extends Cubit<AuthState> implements AuthCubit {
   FakeAuthCubit(AuthState initialState) : super(initialState);
@@ -27,7 +27,7 @@ Widget _buildGoldenApp(AuthCubit cubit) {
     theme: AppTheme.light,
     home: BlocProvider<AuthCubit>.value(
       value: cubit,
-      child: const SignUpScreen(),
+      child: const LoginScreen(),
     ),
   );
 }
@@ -35,7 +35,7 @@ Widget _buildGoldenApp(AuthCubit cubit) {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('SignUpScreen golden', () {
+  group('LoginScreen golden', () {
     testWidgets('initial state', (tester) async {
       final cubit = FakeAuthCubit(AuthInitial());
 
@@ -43,8 +43,8 @@ void main() {
       await tester.pump();
 
       await expectLater(
-        find.byType(SignUpScreen),
-        matchesGoldenFile('goldens/sign_up_screen_initial.png'),
+        find.byType(LoginScreen),
+        matchesGoldenFile('goldens/login_screen_initial.png'),
       );
     });
 
@@ -55,14 +55,14 @@ void main() {
       await tester.pump();
 
       final buttonFinder =
-          find.widgetWithText(ElevatedButton, AppStrings.signUpTitle);
+          find.widgetWithText(ElevatedButton, AppStrings.login);
       await tester.ensureVisible(buttonFinder);
       await tester.tap(buttonFinder);
       await tester.pump();
 
       await expectLater(
-        find.byType(SignUpScreen),
-        matchesGoldenFile('goldens/sign_up_screen_validation_errors.png'),
+        find.byType(LoginScreen),
+        matchesGoldenFile('goldens/login_screen_validation_errors.png'),
       );
     });
 
@@ -73,8 +73,8 @@ void main() {
       await tester.pump();
 
       await expectLater(
-        find.byType(SignUpScreen),
-        matchesGoldenFile('goldens/sign_up_screen_loading.png'),
+        find.byType(LoginScreen),
+        matchesGoldenFile('goldens/login_screen_loading.png'),
       );
     });
 
@@ -85,8 +85,8 @@ void main() {
       await tester.pump();
 
       await expectLater(
-        find.byType(SignUpScreen),
-        matchesGoldenFile('goldens/sign_up_screen_error.png'),
+        find.byType(LoginScreen),
+        matchesGoldenFile('goldens/login_screen_error.png'),
       );
     });
   });

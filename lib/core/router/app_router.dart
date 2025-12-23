@@ -1,3 +1,4 @@
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'package:finance_tracker_app/feature/users/auth/presentation/pages/welcome_screen.dart';
@@ -8,6 +9,9 @@ class AppRoutes {
   static const String welcome = '/';
   static const String login = '/login';
   static const String signUp = '/sign-up';
+
+  // ✅ New
+  static const String dashboard = '/dashboard';
 }
 
 class AppRouter {
@@ -17,29 +21,36 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case AppRoutes.welcome:
-        return MaterialPageRoute(
-          builder: (_) => const WelcomeScreen(),
-          settings: settings,
-        );
+        return _material(const WelcomeScreen(), settings);
 
       case AppRoutes.login:
-        return MaterialPageRoute(
-          builder: (_) => const LoginScreen(),
-          settings: settings,
-        );
+        return _material(const LoginScreen(), settings);
 
       case AppRoutes.signUp:
-        return MaterialPageRoute(
-          builder: (_) => const SignUpScreen(),
-          settings: settings,
-        );
+        return _material(const SignUpScreen(), settings);
+
+      // ✅ New
+      case AppRoutes.dashboard:
+        return _material(const DashboardScreen(), settings);
 
       default:
-        return MaterialPageRoute(
-          builder: (_) =>
-              const Scaffold(body: Center(child: Text('Route not found'))),
-          settings: settings,
-        );
+        return _unknownRoute(settings);
     }
+  }
+
+  static MaterialPageRoute _material(Widget page, RouteSettings settings) {
+    return MaterialPageRoute(
+      builder: (_) => page,
+      settings: settings,
+    );
+  }
+
+  static Route<dynamic> _unknownRoute(RouteSettings settings) {
+    return MaterialPageRoute(
+      settings: settings,
+      builder: (_) => const Scaffold(
+        body: Center(child: Text('Route not found')),
+      ),
+    );
   }
 }

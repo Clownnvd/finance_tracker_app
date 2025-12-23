@@ -1,12 +1,10 @@
-// =======================
-// Dart / Flutter imports
-// =======================
+import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-// =======================
-// Feature: Auth
-// =======================
+import '../network/dio_client.dart';
+import '../network/session_local_data_source.dart';
+import '../network/session_local_data_source_prefs.dart';
+
 import 'package:finance_tracker_app/feature/users/auth/data/models/auth_remote_data_source.dart';
 import 'package:finance_tracker_app/feature/users/auth/data/repositories/auth_repository_impl.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/repositories/auth_repository.dart';
@@ -16,31 +14,52 @@ import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_c
 
 final getIt = GetIt.instance;
 
-void setupDI() {
+void setupDI({
+  required String supabaseUrl,
+  required String supabaseAnonKey,
+}) {
   // =======================
-  // External Services
+  // Session storage (SharedPreferences for ALL platforms)
   // =======================
-  getIt.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
+  getIt.registerLazySingleton<SessionLocalDataSource>(
+    () => SessionLocalDataSourcePrefs(),
+  );
+
+  // =======================
+  // Dio
+  // =======================
+  getIt.registerLazySingleton<Dio>(() {
+    final client = DioClient(
+      baseUrl: supabaseUrl,
+      anonKey: supabaseAnonKey,
+      tokenProvider: () => getIt<SessionLocalDataSource>().getAccessToken(),
+    );
+    print('Dio registered: ${getIt.isRegistered<Dio>()}');
+
+    return client.dio;
+  });
 
   // =======================
   // Data Sources
   // =======================
   getIt.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(getIt<SupabaseClient>()),
+    () => AuthRemoteDataSourceImpl(getIt<Dio>()),
   );
 
   // =======================
   // Repositories
   // =======================
   getIt.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(getIt<AuthRemoteDataSource>()),
+    () => AuthRepositoryImpl(
+      remote: getIt<AuthRemoteDataSource>(),
+      sessionLocal: getIt<SessionLocalDataSource>(),
+    ),
   );
 
   // =======================
   // Usecases
   // =======================
   getIt.registerLazySingleton<Login>(() => Login(getIt<AuthRepository>()));
-
   getIt.registerLazySingleton<Signup>(() => Signup(getIt<AuthRepository>()));
 
   // =======================

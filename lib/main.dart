@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:finance_tracker_app/core/di/di.dart';
 import 'package:finance_tracker_app/core/router/app_router.dart';
@@ -14,35 +13,31 @@ Future<void> main() async {
   String? initError;
 
   try {
-    await dotenv.load();
+    // Load .env (đảm bảo file .env nằm đúng root và đã khai báo trong pubspec assets nếu bạn dùng kiểu đó)
+    await dotenv.load(fileName: '.env');
 
     final supabaseUrl = dotenv.env['SUPABASE_URL'];
     final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
 
     if (supabaseUrl == null ||
-        supabaseUrl.isEmpty ||
+        supabaseUrl.trim().isEmpty ||
         supabaseAnonKey == null ||
-        supabaseAnonKey.isEmpty) {
-      throw Exception(
-        'Missing SUPABASE_URL hoặc SUPABASE_ANON_KEY trong file .env',
-      );
+        supabaseAnonKey.trim().isEmpty) {
+      throw Exception('Missing SUPABASE_URL hoặc SUPABASE_ANON_KEY trong file .env');
     }
 
-    await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
-
-    setupDI();
+    // ✅ Không dùng Supabase.initialize() nữa (vì đã chuyển sang Dio + REST API)
+    setupDI(
+      supabaseUrl: supabaseUrl.trim(),
+      supabaseAnonKey: supabaseAnonKey.trim(),
+    );
   } catch (e, st) {
     debugPrint('❌ Lỗi khởi tạo app: $e');
     debugPrintStack(stackTrace: st);
-
     initError = e.toString();
   }
 
-  if (initError != null) {
-    runApp(ErrorApp(errorMessage: initError!));
-  } else {
-    runApp(const AppRoot());
-  }
+  runApp(initError != null ? ErrorApp(errorMessage: initError!) : const AppRoot());
 }
 
 class AppRoot extends StatelessWidget {
@@ -51,7 +46,9 @@ class AppRoot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider<AuthCubit>(create: (_) => getIt<AuthCubit>())],
+      providers: [
+        BlocProvider<AuthCubit>(create: (_) => getIt<AuthCubit>()),
+      ],
       child: const MyApp(),
     );
   }
@@ -64,14 +61,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+
       builder: (context, child) {
         final mediaQuery = MediaQuery.of(context);
-
         return MediaQuery(
           data: mediaQuery.copyWith(textScaler: const TextScaler.linear(1.0)),
           child: child ?? const SizedBox.shrink(),
         );
       },
+
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.light,

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/theme/app_theme.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/repositories/auth_repository.dart';
@@ -132,14 +133,15 @@ Future<void> _pumpWithCubit(
 }
 
 Finder _fullNameField() =>
-    find.widgetWithText(TextFormField, 'Full Name');
-Finder _emailField() => find.widgetWithText(TextFormField, 'Email');
+    find.widgetWithText(TextFormField, AppStrings.fullNameLabel);
+Finder _emailField() =>
+    find.widgetWithText(TextFormField, AppStrings.emailLabel);
 Finder _passwordField() =>
-    find.widgetWithText(TextFormField, 'Password');
+    find.widgetWithText(TextFormField, AppStrings.passwordLabel);
 Finder _confirmPasswordField() =>
-    find.widgetWithText(TextFormField, 'Confirm password');
+    find.widgetWithText(TextFormField, AppStrings.confirmPasswordLabel);
 Finder _signUpButton() =>
-    find.widgetWithText(ElevatedButton, 'Sign Up');
+    find.widgetWithText(ElevatedButton, AppStrings.signUpTitle);
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -158,10 +160,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 900));
 
-      expect(
-        find.text('Sign up successful. Please login.'),
-        findsOneWidget,
-      );
+      expect(find.text(AppStrings.signUpSuccess), findsOneWidget);
 
       await tester.pump(const Duration(milliseconds: 900));
       expect(find.byKey(const Key('login-screen')), findsOneWidget);
@@ -179,11 +178,8 @@ void main() {
       await tester.tap(_signUpButton());
       await tester.pumpAndSettle();
 
-      expect(find.text('Email format is invalid'), findsOneWidget);
-      expect(
-        find.text('Sign up successful. Please login.'),
-        findsNothing,
-      );
+      expect(find.text(AppStrings.invalidEmailFormat), findsOneWidget);
+      expect(find.text(AppStrings.signUpSuccess), findsNothing);
     });
 
     testWidgets('signup flow with weak password', (tester) async {
@@ -198,10 +194,7 @@ void main() {
       await tester.tap(_signUpButton());
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('Password must be at least 8 characters'),
-        findsOneWidget,
-      );
+      expect(find.text(AppStrings.passwordMinLength8), findsOneWidget);
     });
 
     testWidgets('signup flow with password mismatch', (tester) async {
@@ -216,10 +209,7 @@ void main() {
       await tester.tap(_signUpButton());
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('Password does not match'),
-        findsOneWidget,
-      );
+      expect(find.text(AppStrings.passwordNotMatch), findsOneWidget);
     });
 
     testWidgets('signup flow with network error', (tester) async {

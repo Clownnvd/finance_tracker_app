@@ -1,126 +1,109 @@
-import 'dart:async';
-import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:finance_tracker_app/core/error/exception_mapper.dart';
+import 'package:finance_tracker_app/core/network/supabase_endpoints.dart';
 
-import 'package:finance_tracker_app/core/error/exceptions.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as sb;
+class SignUpResult {
+  final bool emailConfirmationRequired;
+  final String? message;
 
-import '../../domain/entities/user_model.dart';
+  const SignUpResult({
+    required this.emailConfirmationRequired,
+    this.message,
+  });
+}
 
 abstract class AuthRemoteDataSource {
-  Future<UserModel> signup({
+  Future<SignUpResult> signup({
     required String fullName,
     required String email,
     required String password,
   });
 
-  Future<UserModel> login({required String email, required String password});
+  Future<String> login({
+    required String email,
+    required String password,
+  });
 
-  Future<void> logout();
+  Future<Map<String, dynamic>> getMe();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  final sb.SupabaseClient client;
-
-  AuthRemoteDataSourceImpl(this.client);
+  final Dio dio;
+  AuthRemoteDataSourceImpl(this.dio);
 
   @override
-  Future<UserModel> signup({
+  Future<SignUpResult> signup({
     required String fullName,
     required String email,
     required String password,
   }) async {
     try {
-      final res = await client.auth.signUp(
-        email: email,
-        password: password,
-        data: {'full_name': fullName},
+      final res = await dio.post(
+        SupabaseEndpoints.authSignUp,
+        data: {
+          'email': email,
+          'password': password,
+          'data': {'full_name': fullName},
+        },
       );
 
-      final user = res.user;
-      if (user != null) return UserModel.fromSupabase(user);
+      // Supabase thường trả user/session (tuỳ settings)
+      // Nếu bật email confirm, thường session = null => yêu cầu verify email
+      final data = res.data;
+      final session = (data is Map<String, dynamic>) ? data['session'] : null;
 
-      throw const AuthException(
-        'Sign up successful. Please verify your email.',
+      final requiresConfirm = session == null;
+
+      return SignUpResult(
+        emailConfirmationRequired: requiresConfirm,
+        message: requiresConfirm
+            ? 'Sign up successful. Please verify your email before logging in.'
+            : 'Sign up successful.',
       );
-    } on sb.AuthException catch (e) {
-      throw AuthException(_mapSupabaseAuthError(e.message));
-    } on SocketException {
-      throw const NetworkException('No internet connection.');
-    } on TimeoutException {
-      throw const TimeoutRequestException();
-    } catch (_) {
-      throw const ServerException('Unexpected error occurred during sign up.');
+    } catch (e) {
+      throw ExceptionMapper.map(e);
     }
   }
 
   @override
-  Future<UserModel> login({
+  Future<String> login({
     required String email,
     required String password,
   }) async {
     try {
-      final res = await client.auth.signInWithPassword(
-        email: email,
-        password: password,
+      final res = await dio.post(
+        SupabaseEndpoints.authToken,
+        queryParameters: {'grant_type': 'password'},
+        data: {'email': email, 'password': password},
       );
 
-      final user = res.user;
-      final session = res.session;
+      final json = res.data as Map<String, dynamic>;
+      final token = (json['access_token'] ?? '').toString();
 
-      if (user == null) {
-        throw const ServerException('No user returned from server.');
-      }
-
-      if (session == null) {
-        throw const AuthException(
-          'Your account is not active. Please verify your email.',
+      if (token.isEmpty) {
+        throw ExceptionMapper.map(
+          DioException(
+            requestOptions: res.requestOptions,
+            response: res,
+            error: 'Missing access_token',
+            type: DioExceptionType.badResponse,
+          ),
         );
       }
 
-      return UserModel.fromSupabase(user);
-    } on sb.AuthException catch (e) {
-      throw AuthException(_mapSupabaseAuthError(e.message));
-    } on SocketException {
-      throw const NetworkException('No internet connection.');
-    } on TimeoutException {
-      throw const TimeoutRequestException();
-    } catch (_) {
-      throw const ServerException('Unexpected error occurred during login.');
+      return token;
+    } catch (e) {
+      throw ExceptionMapper.map(e);
     }
   }
 
   @override
-  Future<void> logout() async {
+  Future<Map<String, dynamic>> getMe() async {
     try {
-      await client.auth.signOut();
-    } on sb.AuthException catch (e) {
-      throw AuthException(_mapSupabaseAuthError(e.message));
-    } on SocketException {
-      throw const NetworkException('No internet connection.');
-    } on TimeoutException {
-      throw const TimeoutRequestException();
-    } catch (_) {
-      throw const ServerException('Unexpected error occurred during logout.');
+      final res = await dio.get(SupabaseEndpoints.authUser);
+      return res.data as Map<String, dynamic>;
+    } catch (e) {
+      throw ExceptionMapper.map(e);
     }
-  }
-
-  String _mapSupabaseAuthError(String message) {
-    final m = message.toLowerCase();
-
-    if (m.contains('invalid login credentials')) {
-      return 'Email or password is incorrect.';
-    }
-    if (m.contains('user already registered') ||
-        m.contains('already registered')) {
-      return 'This email is already registered.';
-    }
-    if (m.contains('password') && m.contains('least')) {
-      return 'Password is too weak.';
-    }
-    if (m.contains('email not confirmed')) {
-      return 'Please verify your email before continuing.';
-    }
-
-    return message;
   }
 }
