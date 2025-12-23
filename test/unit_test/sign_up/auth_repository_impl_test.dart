@@ -54,7 +54,7 @@ void main() {
             password: any(named: 'password'),
           ),
         ).thenAnswer(
-          (_) async => const SignUpResult(emailConfirmationRequired: false),
+          (_) async => const SignUpResult(emailConfirmationRequired: false, message: 'Sign up successful.'),
         );
 
         // remote.login returns access_token

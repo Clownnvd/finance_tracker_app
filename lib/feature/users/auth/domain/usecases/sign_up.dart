@@ -1,5 +1,5 @@
 import 'package:finance_tracker_app/core/error/exceptions.dart';
-import 'package:finance_tracker_app/core/utils/validation_messages.dart';
+import 'package:finance_tracker_app/core/constants/strings.dart';
 
 import '../entities/user_model.dart';
 import '../repositories/auth_repository.dart';
@@ -28,53 +28,30 @@ class Signup {
     );
   }
 
-
   void _validateFullName(String name) {
     if (name.isEmpty) {
-      throw const ValidationException(
-        ValidationMessages.enterFullName,
-      );
+      throw const ValidationException(AppStrings.fullNameRequired);
     }
   }
 
   void _validateEmail(String email) {
     if (email.isEmpty) {
-      throw const ValidationException(
-        ValidationMessages.enterEmail,
-      );
+      throw const ValidationException(AppStrings.emailRequired);
     }
 
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
     if (!emailRegex.hasMatch(email)) {
-      throw const ValidationException(
-        ValidationMessages.invalidEmail,
-      );
+      throw const ValidationException(AppStrings.invalidEmailFormat);
     }
   }
 
   void _validatePassword(String password) {
     if (password.isEmpty) {
-      throw const ValidationException(
-        ValidationMessages.enterPassword,
-      );
+      throw const ValidationException(AppStrings.passwordRequired);
     }
 
     if (password.length < 8) {
-      throw const ValidationException(
-        ValidationMessages.shortPassword,
-      );
-    }
-
-    if (!RegExp(r'[A-Za-z]').hasMatch(password)) {
-      throw const ValidationException(
-        ValidationMessages.passwordNeedLetter,
-      );
-    }
-
-    if (!RegExp(r'[0-9]').hasMatch(password)) {
-      throw const ValidationException(
-        ValidationMessages.passwordNeedNumber,
-      );
+      throw const ValidationException(AppStrings.passwordMinLength8);
     }
   }
 }

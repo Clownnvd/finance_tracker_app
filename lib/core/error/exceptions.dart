@@ -1,41 +1,29 @@
-/// Base class for all application-level exceptions.
-/// Always contains a message safe to show to UI.
 class AppException implements Exception {
   final String message;
-
   const AppException(this.message);
-
   @override
   String toString() => message;
 }
 
-/// Network related issues: no internet, DNS fail, SocketException, etc.
 class NetworkException extends AppException {
-  const NetworkException([String message = 'Network error. Check connection'])
-      : super(message);
+  const NetworkException([super.message = 'Network error. Check connection']);
 }
 
-/// Request timeout or server took too long to respond.
 class TimeoutRequestException extends AppException {
-  const TimeoutRequestException([String message = 'Request timed out'])
-      : super(message);
+  const TimeoutRequestException([super.message = 'Request timed out']);
 }
 
-/// Authentication errors: wrong password, invalid email, expired token, etc.
 class AuthException extends AppException {
-  const AuthException([String message = 'Authentication failed'])
-      : super(message);
+  const AuthException([super.message = 'Authentication failed']);
 }
 
-/// Validation errors in client-side or API-side input.
-/// (e.g. password too short, email invalid format)
 class ValidationException extends AppException {
-  const ValidationException([String message = 'Invalid input data'])
-      : super(message);
+  const ValidationException([super.message = 'Invalid input data']);
 }
 
-/// Server errors (5xx) or unexpected Supabase error messages.
 class ServerException extends AppException {
-  const ServerException([String message = 'Server error occurred'])
-      : super(message);
+  const ServerException([super.message = 'Server error occurred']);
+}
+class CacheException extends AppException {
+  const CacheException([super.message = 'Cache error occurred']);
 }

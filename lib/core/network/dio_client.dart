@@ -25,23 +25,11 @@ class DioClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await tokenProvider();
-
-          // ✅ Supabase expects Authorization Bearer token
-          // - if logged in: use accessToken
-          // - else: use anonKey (very important for /auth/v1/*)
           options.headers['Authorization'] = 'Bearer ${token ?? anonKey}';
-
-          return handler.next(options);
+          handler.next(options);
         },
         onError: (e, handler) {
-          // log để nhìn ra lỗi thật
-          // ignore: avoid_print
-          print('❌ ${e.requestOptions.method} ${e.requestOptions.uri}');
-          // ignore: avoid_print
-          print('Status: ${e.response?.statusCode}');
-          // ignore: avoid_print
-          print('Data: ${e.response?.data}');
-          return handler.next(e);
+          handler.next(e);
         },
       ),
     );

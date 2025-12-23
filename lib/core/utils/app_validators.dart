@@ -1,16 +1,16 @@
 import 'package:email_validator/email_validator.dart';
-import 'package:finance_tracker_app/core/utils/validation_messages.dart';
+import 'package:finance_tracker_app/core/constants/strings.dart';
 
 class AppValidators {
   static String? email(String? value) {
     final v = value?.trim();
 
     if (v == null || v.isEmpty) {
-      return ValidationMessages.enterEmail;
+      return AppStrings.emailRequired;
     }
 
     if (!EmailValidator.validate(v)) {
-      return ValidationMessages.invalidEmail;
+      return AppStrings.invalidEmailFormat;
     }
 
     return null;
@@ -18,19 +18,11 @@ class AppValidators {
 
   static String? password(String? value) {
     if (value == null || value.isEmpty) {
-      return ValidationMessages.enterPassword;
+      return AppStrings.passwordRequired;
     }
 
     if (value.length < 8) {
-      return ValidationMessages.shortPassword;
-    }
-
-    if (!RegExp(r'[A-Za-z]').hasMatch(value)) {
-      return ValidationMessages.passwordNeedLetter;
-    }
-
-    if (!RegExp(r'[0-9]').hasMatch(value)) {
-      return ValidationMessages.passwordNeedNumber;
+      return AppStrings.passwordMinLength8;
     }
 
     return null;
@@ -38,11 +30,11 @@ class AppValidators {
 
   static String? confirmPassword(String? value, String password) {
     if (value == null || value.isEmpty) {
-      return ValidationMessages.confirmPassword;
+      return AppStrings.confirmPasswordRequired;
     }
 
     if (value != password) {
-      return ValidationMessages.passwordMismatch;
+      return AppStrings.passwordNotMatch;
     }
 
     return null;

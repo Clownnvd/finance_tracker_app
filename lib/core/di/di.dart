@@ -3,8 +3,6 @@ import 'package:get_it/get_it.dart';
 
 import '../network/dio_client.dart';
 import '../network/session_local_data_source.dart';
-import '../network/session_local_data_source_prefs.dart';
-
 import 'package:finance_tracker_app/feature/users/auth/data/models/auth_remote_data_source.dart';
 import 'package:finance_tracker_app/feature/users/auth/data/repositories/auth_repository_impl.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/repositories/auth_repository.dart';
@@ -22,22 +20,20 @@ void setupDI({
   // Session storage (SharedPreferences for ALL platforms)
   // =======================
   getIt.registerLazySingleton<SessionLocalDataSource>(
-    () => SessionLocalDataSourcePrefs(),
+    SessionLocalDataSourcePrefs.new,
   );
 
   // =======================
   // Dio
   // =======================
-  getIt.registerLazySingleton<Dio>(() {
-    final client = DioClient(
+  getIt.registerLazySingleton<Dio>(
+    () => DioClient(
       baseUrl: supabaseUrl,
       anonKey: supabaseAnonKey,
-      tokenProvider: () => getIt<SessionLocalDataSource>().getAccessToken(),
-    );
-    print('Dio registered: ${getIt.isRegistered<Dio>()}');
-
-    return client.dio;
-  });
+      tokenProvider: () =>
+          getIt<SessionLocalDataSource>().getAccessToken(),
+    ).dio,
+  );
 
   // =======================
   // Data Sources
@@ -59,13 +55,20 @@ void setupDI({
   // =======================
   // Usecases
   // =======================
-  getIt.registerLazySingleton<Login>(() => Login(getIt<AuthRepository>()));
-  getIt.registerLazySingleton<Signup>(() => Signup(getIt<AuthRepository>()));
+  getIt.registerLazySingleton<Login>(
+    () => Login(getIt<AuthRepository>()),
+  );
+  getIt.registerLazySingleton<Signup>(
+    () => Signup(getIt<AuthRepository>()),
+  );
 
   // =======================
   // Cubits
   // =======================
   getIt.registerFactory<AuthCubit>(
-    () => AuthCubit(login: getIt<Login>(), signup: getIt<Signup>()),
+    () => AuthCubit(
+      login: getIt<Login>(),
+      signup: getIt<Signup>(),
+    ),
   );
 }

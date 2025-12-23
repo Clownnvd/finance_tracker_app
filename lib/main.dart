@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:window_size/window_size.dart';
 import 'package:finance_tracker_app/core/di/di.dart';
 import 'package:finance_tracker_app/core/router/app_router.dart';
 import 'package:finance_tracker_app/core/theme/app_theme.dart';
@@ -13,31 +15,29 @@ Future<void> main() async {
   String? initError;
 
   try {
-    // Load .env (đảm bảo file .env nằm đúng root và đã khai báo trong pubspec assets nếu bạn dùng kiểu đó)
     await dotenv.load(fileName: '.env');
 
-    final supabaseUrl = dotenv.env['SUPABASE_URL'];
-    final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
+    final supabaseUrl = dotenv.env['SUPABASE_URL']?.trim();
+    final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY']?.trim();
 
     if (supabaseUrl == null ||
-        supabaseUrl.trim().isEmpty ||
+        supabaseUrl.isEmpty ||
         supabaseAnonKey == null ||
-        supabaseAnonKey.trim().isEmpty) {
-      throw Exception('Missing SUPABASE_URL hoặc SUPABASE_ANON_KEY trong file .env');
+        supabaseAnonKey.isEmpty) {
+      throw Exception('Missing SUPABASE_URL or SUPABASE_ANON_KEY in .env');
     }
 
-    // ✅ Không dùng Supabase.initialize() nữa (vì đã chuyển sang Dio + REST API)
     setupDI(
-      supabaseUrl: supabaseUrl.trim(),
-      supabaseAnonKey: supabaseAnonKey.trim(),
+      supabaseUrl: supabaseUrl,
+      supabaseAnonKey: supabaseAnonKey,
     );
   } catch (e, st) {
-    debugPrint('❌ Lỗi khởi tạo app: $e');
+    debugPrint('❌ Init error: $e');
     debugPrintStack(stackTrace: st);
     initError = e.toString();
   }
-
-  runApp(initError != null ? ErrorApp(errorMessage: initError!) : const AppRoot());
+  setupWindow();
+  runApp(initError != null ? ErrorApp(errorMessage: initError) : const AppRoot());
 }
 
 class AppRoot extends StatelessWidget {
@@ -54,6 +54,28 @@ class AppRoot extends StatelessWidget {
   }
 }
 
+const double windowWidth = 480;
+const double windowHeight = 854;
+
+void setupWindow() {
+  if (!kIsWeb &&
+      (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    WidgetsFlutterBinding.ensureInitialized();
+    setWindowTitle('Finance Tracker');
+    setWindowMinSize(const Size(windowWidth, windowHeight));
+    setWindowMaxSize(const Size(windowWidth, windowHeight));
+    getCurrentScreen().then((screen) {
+      setWindowFrame(
+        Rect.fromCenter(
+          center: screen!.frame.center,
+          width: windowWidth,
+          height: windowHeight,
+        ),
+      );
+    });
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -61,15 +83,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-
       builder: (context, child) {
-        final mediaQuery = MediaQuery.of(context);
+        final mq = MediaQuery.of(context);
         return MediaQuery(
-          data: mediaQuery.copyWith(textScaler: const TextScaler.linear(1.0)),
+          data: mq.copyWith(textScaler: const TextScaler.linear(1.0)),
           child: child ?? const SizedBox.shrink(),
         );
       },
-
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.light,
@@ -89,30 +109,32 @@ class ErrorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
       home: Scaffold(
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.error_outline, size: 64),
-                const SizedBox(height: 16),
-                const Text(
-                  'Đã xảy ra lỗi khi khởi tạo ứng dụng',
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'App initialization failed',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   errorMessage,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 14),
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Vui lòng kiểm tra lại file .env và cấu hình Supabase.',
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  'Please check your .env and Supabase config.',
                   textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
             ),

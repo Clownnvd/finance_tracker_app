@@ -1,14 +1,15 @@
 import 'package:dio/dio.dart';
+import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/error/exception_mapper.dart';
 import 'package:finance_tracker_app/core/network/supabase_endpoints.dart';
 
 class SignUpResult {
   final bool emailConfirmationRequired;
-  final String? message;
+  final String message;
 
   const SignUpResult({
     required this.emailConfirmationRequired,
-    this.message,
+    required this.message,
   });
 }
 
@@ -29,6 +30,7 @@ abstract class AuthRemoteDataSource {
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final Dio dio;
+
   AuthRemoteDataSourceImpl(this.dio);
 
   @override
@@ -47,18 +49,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         },
       );
 
-      // Supabase thường trả user/session (tuỳ settings)
-      // Nếu bật email confirm, thường session = null => yêu cầu verify email
       final data = res.data;
-      final session = (data is Map<String, dynamic>) ? data['session'] : null;
+      final session =
+          data is Map<String, dynamic> ? data['session'] : null;
 
       final requiresConfirm = session == null;
 
       return SignUpResult(
         emailConfirmationRequired: requiresConfirm,
         message: requiresConfirm
-            ? 'Sign up successful. Please verify your email before logging in.'
-            : 'Sign up successful.',
+            ? AppStrings.signUpSuccessVerifyEmail
+            : AppStrings.signUpSuccessAutoLogin,
       );
     } catch (e) {
       throw ExceptionMapper.map(e);
@@ -74,7 +75,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final res = await dio.post(
         SupabaseEndpoints.authToken,
         queryParameters: {'grant_type': 'password'},
-        data: {'email': email, 'password': password},
+        data: {
+          'email': email,
+          'password': password,
+        },
       );
 
       final json = res.data as Map<String, dynamic>;
@@ -85,8 +89,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           DioException(
             requestOptions: res.requestOptions,
             response: res,
-            error: 'Missing access_token',
             type: DioExceptionType.badResponse,
+            error: AppStrings.genericError,
           ),
         );
       }
