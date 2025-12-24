@@ -57,7 +57,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         requireEmailVerification: needVerifyEmail,
         message: needVerifyEmail
             ? AppStrings.signUpSuccessVerifyEmail
-            : AppStrings.signUpSuccessAutoLogin,
+            : AppStrings.signUpSuccess,
       );
     } catch (e) {
       throw ExceptionMapper.map(e);

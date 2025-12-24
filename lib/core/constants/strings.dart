@@ -10,10 +10,9 @@ class AppStrings {
   static const register = 'Register';
   static const signUpTitle = 'Sign Up';
 
-  static const signUpSuccess = 'Sign up successful. Please login.';
+  static const signUpSuccess = 'Sign up successful';
   static const signUpSuccessVerifyEmail =
       'Sign up successful. Please verify your email before logging in.';
-  static const signUpSuccessAutoLogin = 'Sign up successful.';
 
   static const alreadyHaveAccount = 'Already have an account?';
   static const dontHaveAccount = "Don't have an account?";
