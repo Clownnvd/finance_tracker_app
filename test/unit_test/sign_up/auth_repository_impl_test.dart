@@ -19,11 +19,7 @@ void main() {
   setUp(() {
     remote = MockAuthRemoteDataSource();
     sessionLocal = MockSessionLocalDataSource();
-
-    repo = AuthRepositoryImpl(
-      remote: remote,
-      sessionLocal: sessionLocal,
-    );
+    repo = AuthRepositoryImpl(remote: remote, sessionLocal: sessionLocal);
   });
 
   const email = 'test@example.com';
@@ -36,7 +32,7 @@ void main() {
     'user_metadata': {'full_name': fullName},
   };
 
-  final expectedUser = UserModel(
+  const expectedUser = UserModel(
     id: 'user-1',
     email: email,
     fullName: fullName,
@@ -44,9 +40,8 @@ void main() {
 
   group('signup', () {
     test(
-      'signup success (no email confirm) returns UserModel (signup -> login -> saveToken -> getMe)',
+      'signup success (no email verify) returns UserModel (signup -> login -> saveToken -> getMe)',
       () async {
-        // ✅ remote.signup returns SignUpResult
         when(
           () => remote.signup(
             fullName: any(named: 'fullName'),
@@ -54,10 +49,12 @@ void main() {
             password: any(named: 'password'),
           ),
         ).thenAnswer(
-          (_) async => const SignUpResult(emailConfirmationRequired: false, message: 'Sign up successful.'),
+          (_) async => const SignUpResult(
+            requireEmailVerification: false,
+            message: 'Sign up successful.',
+          ),
         );
 
-        // remote.login returns access_token
         when(
           () => remote.login(
             email: any(named: 'email'),
@@ -65,11 +62,9 @@ void main() {
           ),
         ).thenAnswer((_) async => 'access-token-123');
 
-        // save token
         when(() => sessionLocal.saveAccessToken(any()))
             .thenAnswer((_) async {});
 
-        // getMe returns user json
         when(() => remote.getMe()).thenAnswer((_) async => meJson);
 
         final result = await repo.signup(
@@ -80,18 +75,9 @@ void main() {
 
         expect(result, expectedUser);
 
-        verify(
-          () => remote.signup(
-            fullName: fullName,
-            email: email,
-            password: password,
-          ),
-        ).called(1);
-
+        verify(() => remote.signup(fullName: fullName, email: email, password: password)).called(1);
         verify(() => remote.login(email: email, password: password)).called(1);
-
         verify(() => sessionLocal.saveAccessToken('access-token-123')).called(1);
-
         verify(() => remote.getMe()).called(1);
 
         verifyNoMoreInteractions(remote);
@@ -110,9 +96,8 @@ void main() {
           ),
         ).thenAnswer(
           (_) async => const SignUpResult(
-            emailConfirmationRequired: true,
-            message:
-                'Sign up successful. Please verify your email before logging in.',
+            requireEmailVerification: true,
+            message: 'Sign up successful. Please verify your email before logging in.',
           ),
         );
 
@@ -121,13 +106,7 @@ void main() {
           throwsA(isA<AuthException>()),
         );
 
-        verify(
-          () => remote.signup(
-            fullName: fullName,
-            email: email,
-            password: password,
-          ),
-        ).called(1);
+        verify(() => remote.signup(fullName: fullName, email: email, password: password)).called(1);
 
         verifyNever(() => remote.login(email: any(named: 'email'), password: any(named: 'password')));
         verifyNever(() => sessionLocal.saveAccessToken(any()));
@@ -149,9 +128,7 @@ void main() {
         throwsA(isA<AuthException>()),
       );
 
-      verify(
-        () => remote.signup(fullName: fullName, email: email, password: password),
-      ).called(1);
+      verify(() => remote.signup(fullName: fullName, email: email, password: password)).called(1);
 
       verifyNever(() => remote.login(email: any(named: 'email'), password: any(named: 'password')));
       verifyNever(() => sessionLocal.saveAccessToken(any()));
@@ -168,8 +145,7 @@ void main() {
         ),
       ).thenAnswer((_) async => 'access-token-xyz');
 
-      when(() => sessionLocal.saveAccessToken(any()))
-          .thenAnswer((_) async {});
+      when(() => sessionLocal.saveAccessToken(any())).thenAnswer((_) async {});
       when(() => remote.getMe()).thenAnswer((_) async => meJson);
 
       final result = await repo.login(email: email, password: password);

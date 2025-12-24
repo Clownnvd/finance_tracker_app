@@ -26,19 +26,14 @@ class AuthRepositoryImpl implements AuthRepository {
       password: password,
     );
 
-    if (result.emailConfirmationRequired) {
+    if (result.requireEmailVerification) {
       throw AuthException(result.message);
     }
 
     final token = await remote.login(email: email, password: password);
     await sessionLocal.saveAccessToken(token);
 
-    final me = await remote.getMe();
-    return UserModel(
-      id: (me['id'] ?? '').toString(),
-      email: (me['email'] ?? '').toString(),
-      fullName: (me['user_metadata']?['full_name']) as String?,
-    );
+    return _fetchMe();
   }
 
   @override
@@ -49,20 +44,25 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final token = await remote.login(email: email, password: password);
       await sessionLocal.saveAccessToken(token);
-
-      final me = await remote.getMe();
-      return UserModel(
-        id: (me['id'] ?? '').toString(),
-        email: (me['email'] ?? '').toString(),
-        fullName: (me['user_metadata']?['full_name']) as String?,
-      );
+      return _fetchMe();
+    } on AppException {
+      rethrow;
     } catch (_) {
       throw const AuthException(AppStrings.loginFailed);
     }
   }
 
-  @override
-  Future<void> logout() async {
-    await sessionLocal.clear();
+  Future<UserModel> _fetchMe() async {
+    final me = await remote.getMe();
+    final meta = me['user_metadata'];
+
+    return UserModel(
+      id: (me['id'] ?? '').toString(),
+      email: (me['email'] ?? '').toString(),
+      fullName: meta is Map<String, dynamic> ? meta['full_name'] as String? : null,
+    );
   }
+
+  @override
+  Future<void> logout() => sessionLocal.clear();
 }

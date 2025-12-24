@@ -4,11 +4,11 @@ import 'package:finance_tracker_app/core/error/exception_mapper.dart';
 import 'package:finance_tracker_app/core/network/supabase_endpoints.dart';
 
 class SignUpResult {
-  final bool emailConfirmationRequired;
+  final bool requireEmailVerification;
   final String message;
 
   const SignUpResult({
-    required this.emailConfirmationRequired,
+    required this.requireEmailVerification,
     required this.message,
   });
 }
@@ -49,15 +49,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         },
       );
 
-      final data = res.data;
-      final session =
-          data is Map<String, dynamic> ? data['session'] : null;
-
-      final requiresConfirm = session == null;
+      final body = res.data;
+      final session = body is Map<String, dynamic> ? body['session'] : null;
+      final needVerifyEmail = session == null;
 
       return SignUpResult(
-        emailConfirmationRequired: requiresConfirm,
-        message: requiresConfirm
+        requireEmailVerification: needVerifyEmail,
+        message: needVerifyEmail
             ? AppStrings.signUpSuccessVerifyEmail
             : AppStrings.signUpSuccessAutoLogin,
       );
@@ -74,15 +72,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final res = await dio.post(
         SupabaseEndpoints.authToken,
-        queryParameters: {'grant_type': 'password'},
-        data: {
-          'email': email,
-          'password': password,
-        },
+        queryParameters: const {'grant_type': 'password'},
+        data: {'email': email, 'password': password},
       );
 
-      final json = res.data as Map<String, dynamic>;
-      final token = (json['access_token'] ?? '').toString();
+      final data = res.data;
+      final token = data is Map<String, dynamic>
+          ? (data['access_token'] ?? '').toString()
+          : '';
 
       if (token.isEmpty) {
         throw ExceptionMapper.map(
@@ -105,7 +102,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<Map<String, dynamic>> getMe() async {
     try {
       final res = await dio.get(SupabaseEndpoints.authUser);
-      return res.data as Map<String, dynamic>;
+      final data = res.data;
+
+      if (data is Map<String, dynamic>) return data;
+
+      throw ExceptionMapper.map(
+        DioException(
+          requestOptions: res.requestOptions,
+          response: res,
+          type: DioExceptionType.badResponse,
+          error: AppStrings.genericError,
+        ),
+      );
     } catch (e) {
       throw ExceptionMapper.map(e);
     }

@@ -54,7 +54,7 @@ class AppRoot extends StatelessWidget {
   }
 }
 
-const double windowWidth = 480;
+const double windowWidth = 500;
 const double windowHeight = 854;
 
 void setupWindow() {
