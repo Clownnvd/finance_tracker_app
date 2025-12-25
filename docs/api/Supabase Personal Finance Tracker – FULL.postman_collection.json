@@ -1,0 +1,1250 @@
+{
+	"info": {
+		"_postman_id": "82495fd1-6545-48c7-84ac-a378c814e131",
+		"name": "Supabase Personal Finance Tracker – FULL",
+		"description": "Collection đầy đủ cho Fresher: Auth, Users profile, Categories, Transactions, Budgets, Settings. Import → sửa SUPABASE_URL & ANON_KEY là chạy được. Nhớ: ACCESS_TOKEN sẽ tự lưu sau khi Login/Signup.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "8843017",
+		"_collection_link": "https://interstellar-astronaut-588767.postman.co/workspace/Team-Workspace~eb1d8f56-6f0b-434e-8450-fba6d090e2e5/collection/8843017-82495fd1-6545-48c7-84ac-a378c814e131?action=share&source=collection_link&creator=8843017"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Auth - Sign up",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const data = pm.response.json();",
+									"if (data && data.access_token) {",
+									"  pm.collectionVariables.set(\"ACCESS_TOKEN\", data.access_token);",
+									"}",
+									"if (data && data.user && data.user.id) {",
+									"  pm.collectionVariables.set(\"USER_ID\", data.user.id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"kylh84@gmail.com\",\n  \"password\": \"12345678\",\n  \"options\": {\n    \"data\": {\n      \"name\": \"User Name\",\n      \"avatar_url\": \"https://example.com/avatar.png\"\n    }\n  }\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/auth/v1/signup",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"v1",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Auth - Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const data = pm.response.json();",
+									"if (data && data.access_token) {",
+									"  pm.collectionVariables.set(\"ACCESS_TOKEN\", data.access_token);",
+									"}",
+									"if (data && data.user && data.user.id) {",
+									"  pm.collectionVariables.set(\"USER_ID\", data.user.id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"kylh84@gmail.com\",\n  \"password\": \"12345678\"\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/auth/v1/token?grant_type=password",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"v1",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "password"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Users - Create profile (id = auth.uid())",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Prefer",
+								"value": "return=representation"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"{{USER_ID}}\",\n  \"email\": \"user@example.com\",\n  \"name\": \"User Name\",\n  \"avatar_url\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/users",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Users - Get my profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/users?id=eq.{{USER_ID}}",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"users"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "eq.{{USER_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Users - Update my profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Prefer",
+								"value": "return=representation"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Name\"\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/users?id=eq.{{USER_ID}}",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"users"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "eq.{{USER_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Categories - Get all (public select)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/categories",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Categories - Get categories by Type – EXPENSE",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/categories?type=eq.EXPENSE",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"categories"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "eq.EXPENSE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Categories - Get categories by Type – INCOME",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/categories?type=eq.INCOME",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"categories"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "eq.INCOME"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Categories - Admin Create (service_role)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{SERVICE_ROLE_KEY}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Prefer",
+								"value": "return=representation"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Transport\",\n  \"type\": \"EXPENSE\",\n  \"icon\": \"car\"\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/categories",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RPC - Category Totals (EXPENSE)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uid\": \"{{USER_ID}}\",\n  \"start_date\": \"{{MONTH_START}}\",\n  \"end_date\": \"{{MONTH_END}}\",\n  \"cat_type\": \"EXPENSE\"\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/rpc/category_totals",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"rpc",
+								"category_totals"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RPC - Category Totals (INCOME)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"uid\": \"{{USER_ID}}\",\n  \"start_date\": \"{{MONTH_START}}\",\n  \"end_date\": \"{{MONTH_END}}\",\n  \"cat_type\": \"INCOME\"\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/rpc/category_totals",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"rpc",
+								"category_totals"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "Transactions - Get all (current user)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/transactions?user_id=eq.{{USER_ID}}&order=date.desc",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "eq.{{USER_ID}}"
+								},
+								{
+									"key": "order",
+									"value": "date.desc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Transactions - Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Prefer",
+								"value": "return=representation"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": \"{{USER_ID}}\",\n  \"category_id\": {{CATEGORY_ID}},\n  \"type\": \"EXPENSE\",\n  \"amount\": 120000,\n  \"note\": \"Lunch\",\n  \"date\": \"2025-08-13\"\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/transactions",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Transactions - Get by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/transactions?id=eq.{{TX_ID}}",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "eq.{{TX_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Transactions - Update by ID",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Prefer",
+								"value": "return=representation"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 150000,\n  \"note\": \"Lunch + coffee\"\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/transactions?id=eq.{{TX_ID}}",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "eq.{{TX_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Transactions - Delete by ID",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Prefer",
+								"value": "return=representation"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/transactions?id=eq.{{TX_ID}}",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "eq.{{TX_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Transactions - Range by Date (month)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/transactions?user_id=eq.{{USER_ID}}&date=gte.2025-08-01&date=lte.2025-08-31&order=date.asc",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "eq.{{USER_ID}}"
+								},
+								{
+									"key": "date",
+									"value": "gte.2025-08-01"
+								},
+								{
+									"key": "date",
+									"value": "lte.2025-08-31"
+								},
+								{
+									"key": "order",
+									"value": "date.asc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Recent Transactions (Top 5) - for tooltip/legend",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/transactions?user_id=eq.{{USER_ID}}&date=gte.{{MONTH_START}}&date=lte.{{MONTH_END}}&select=id,amount,type,date,note,category_id,categories(name,icon)&order=date.desc&limit=5",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "eq.{{USER_ID}}"
+								},
+								{
+									"key": "date",
+									"value": "gte.{{MONTH_START}}"
+								},
+								{
+									"key": "date",
+									"value": "lte.{{MONTH_END}}"
+								},
+								{
+									"key": "select",
+									"value": "id,amount,type,date,note,category_id,categories(name,icon)"
+								},
+								{
+									"key": "order",
+									"value": "date.desc"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Budgets",
+			"item": [
+				{
+					"name": "Budgets - Get all (current user)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/budgets?user_id=eq.{{USER_ID}}&order=month.asc",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"budgets"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "eq.{{USER_ID}}"
+								},
+								{
+									"key": "order",
+									"value": "month.asc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Budgets - Create",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Prefer",
+								"value": "return=representation"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": \"{{USER_ID}}\",\n  \"category_id\": {{CATEGORY_ID}},\n  \"amount\": 2500000,\n  \"month\": 8\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/budgets",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"budgets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Budgets - Update by ID",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Prefer",
+								"value": "return=representation"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 3000000\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/budgets?id=eq.{{BUDGET_ID}}",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"budgets"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "eq.{{BUDGET_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Budgets - Delete by ID",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Prefer",
+								"value": "return=representation"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/budgets?id=eq.{{BUDGET_ID}}",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"budgets"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "eq.{{BUDGET_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Settings",
+			"item": [
+				{
+					"name": "Settings - Get mine",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/settings?user_id=eq.{{USER_ID}}",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"settings"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "eq.{{USER_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Settings - Upsert (insert/update)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Prefer",
+								"value": "return=representation"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": \"{{USER_ID}}\",\n  \"reminder_on\": true,\n  \"budget_alert_on\": true,\n  \"tips_on\": false\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/settings",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"settings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Settings - Update flags",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Prefer",
+								"value": "return=representation"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"tips_on\": true\n}"
+						},
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/settings?user_id=eq.{{USER_ID}}",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"settings"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "eq.{{USER_ID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Totals - This Month - INCOME (sum)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/v_month_totals?month=eq.{{MONTH_START}}&type=eq.INCOME",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"v_month_totals"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "eq.{{USER_ID}}",
+									"disabled": true
+								},
+								{
+									"key": "month",
+									"value": "eq.{{MONTH_START}}"
+								},
+								{
+									"key": "type",
+									"value": "eq.INCOME"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Totals - This Month - EXPENSE (sum)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/v_month_totals?month=eq.{{MONTH_START}}&type=eq.EXPENSE",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"v_month_totals"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "eq.{{USER_ID}}",
+									"disabled": true
+								},
+								{
+									"key": "month",
+									"value": "eq.{{MONTH_START}}"
+								},
+								{
+									"key": "type",
+									"value": "eq.EXPENSE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Recent Transactions - Top 3 (with category)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "apikey",
+								"value": "{{ANON_KEY}}"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{ACCESS_TOKEN}}"
+							}
+						],
+						"url": {
+							"raw": "{{SUPABASE_URL}}/{{REST_PATH}}/transactions?user_id=eq.{{USER_ID}}&select=id,amount,type,date,note,category_id,categories(name,icon)&order=date.desc&limit=3",
+							"host": [
+								"{{SUPABASE_URL}}"
+							],
+							"path": [
+								"{{REST_PATH}}",
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "eq.{{USER_ID}}"
+								},
+								{
+									"key": "select",
+									"value": "id,amount,type,date,note,category_id,categories(name,icon)"
+								},
+								{
+									"key": "order",
+									"value": "date.desc"
+								},
+								{
+									"key": "limit",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "SUPABASE_URL",
+			"value": "https://YOUR-PROJECT-ID.supabase.co"
+		},
+		{
+			"key": "REST_PATH",
+			"value": "rest/v1"
+		},
+		{
+			"key": "ANON_KEY",
+			"value": "YOUR-ANON-KEY"
+		},
+		{
+			"key": "ACCESS_TOKEN",
+			"value": "{{ANON_KEY}}"
+		},
+		{
+			"key": "USER_ID",
+			"value": "00000000-0000-0000-0000-000000000000"
+		},
+		{
+			"key": "CATEGORY_ID",
+			"value": "1"
+		},
+		{
+			"key": "TX_ID",
+			"value": "1"
+		},
+		{
+			"key": "BUDGET_ID",
+			"value": "1"
+		},
+		{
+			"key": "SERVICE_ROLE_KEY",
+			"value": ""
+		},
+		{
+			"key": "MONTH_START",
+			"value": "2025-08-01",
+			"type": "string"
+		},
+		{
+			"key": "MONTH_END",
+			"value": "2025-08-31",
+			"type": "string"
+		},
+		{
+			"key": "TODAY",
+			"value": "2025-08-13",
+			"type": "string"
+		}
+	]
+}
