@@ -1,43 +1,110 @@
+import 'dart:async';
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:window_size/window_size.dart';
+
 import 'package:finance_tracker_app/core/di/di.dart';
 import 'package:finance_tracker_app/core/router/app_router.dart';
 import 'package:finance_tracker_app/core/theme/app_theme.dart';
+import 'package:finance_tracker_app/shared/widgets/error_boundary.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
+
+const double windowWidth = 500;
+const double windowHeight = 854;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  String? initError;
+  await runZonedGuarded(() async {
+    final initResult = await _initApp();
 
+    if (initResult == null) {
+      _setupWindow();
+      runApp(
+        ErrorBoundary(
+          reporter: _reportCrash,
+          child: const AppRoot(),
+        ),
+      );
+    } else {
+      runApp(
+        ErrorBoundary(
+          reporter: _reportCrash,
+          child: ErrorApp(errorMessage: initResult),
+        ),
+      );
+    }
+  }, (error, stack) async {
+    await _reportCrash(error, stack);
+  });
+}
+
+Future<String?> _initApp() async {
   try {
     await dotenv.load(fileName: '.env');
 
-    final supabaseUrl = dotenv.env['SUPABASE_URL']?.trim();
-    final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY']?.trim();
+    final supabaseUrl = _requireEnv('SUPABASE_URL');
+    final supabaseAnonKey = _requireEnv('SUPABASE_ANON_KEY');
 
-    if (supabaseUrl == null ||
-        supabaseUrl.isEmpty ||
-        supabaseAnonKey == null ||
-        supabaseAnonKey.isEmpty) {
-      throw Exception('Missing SUPABASE_URL or SUPABASE_ANON_KEY in .env');
-    }
+    _validateSupabaseUrl(supabaseUrl);
+    _validateAnonKey(supabaseAnonKey);
 
     setupDI(
       supabaseUrl: supabaseUrl,
       supabaseAnonKey: supabaseAnonKey,
     );
+
+    return null;
   } catch (e, st) {
-    debugPrint('❌ Init error: $e');
     debugPrintStack(stackTrace: st);
-    initError = e.toString();
+    return e.toString();
   }
-  setupWindow();
-  runApp(initError != null ? ErrorApp(errorMessage: initError) : const AppRoot());
+}
+
+String _requireEnv(String key) {
+  final v = dotenv.env[key]?.trim();
+  if (v == null || v.isEmpty) {
+    throw Exception('Missing $key in .env');
+  }
+  return v;
+}
+
+void _validateSupabaseUrl(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null || !uri.isAbsolute || uri.scheme != 'https') {
+    throw Exception('Invalid SUPABASE_URL');
+  }
+}
+
+void _validateAnonKey(String anonKey) {
+  final parts = anonKey.split('.');
+  final looksLikeJwt = parts.length == 3 && anonKey.startsWith('eyJ');
+  if (!looksLikeJwt && anonKey.length < 40) {
+    throw Exception('Invalid SUPABASE_ANON_KEY');
+  }
+}
+
+void _setupWindow() {
+  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    setWindowTitle('Finance Tracker');
+    setWindowMinSize(const Size(windowWidth, windowHeight));
+    setWindowMaxSize(const Size(windowWidth, windowHeight));
+
+    getCurrentScreen().then((screen) {
+      if (screen == null) return;
+      setWindowFrame(
+        Rect.fromCenter(
+          center: screen.frame.center,
+          width: windowWidth,
+          height: windowHeight,
+        ),
+      );
+    });
+  }
 }
 
 class AppRoot extends StatelessWidget {
@@ -51,28 +118,6 @@ class AppRoot extends StatelessWidget {
       ],
       child: const MyApp(),
     );
-  }
-}
-
-const double windowWidth = 500;
-const double windowHeight = 854;
-
-void setupWindow() {
-  if (!kIsWeb &&
-      (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-    WidgetsFlutterBinding.ensureInitialized();
-    setWindowTitle('Finance Tracker');
-    setWindowMinSize(const Size(windowWidth, windowHeight));
-    setWindowMaxSize(const Size(windowWidth, windowHeight));
-    getCurrentScreen().then((screen) {
-      setWindowFrame(
-        Rect.fromCenter(
-          center: screen!.frame.center,
-          width: windowWidth,
-          height: windowHeight,
-        ),
-      );
-    });
   }
 }
 
@@ -143,4 +188,13 @@ class ErrorApp extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _reportCrash(
+  Object error,
+  StackTrace stack, {
+  FlutterErrorDetails? details,
+}) async {
+  debugPrint('💥 Unhandled error: $error');
+  debugPrintStack(stackTrace: stack);
 }

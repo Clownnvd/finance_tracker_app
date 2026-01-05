@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,7 +8,6 @@ import 'package:integration_test/integration_test.dart';
 import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/router/app_router.dart';
 import 'package:finance_tracker_app/core/theme/app_theme.dart';
-import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/repositories/auth_repository.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/login.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/sign_up.dart';
@@ -17,7 +18,11 @@ import 'package:finance_tracker_app/feature/users/auth/presentation/pages/sign_u
 
 class _DummyAuthRepository implements AuthRepository {
   @override
-  Future<UserModel> login({required String email, required String password}) {
+  Future<UserModel> login({
+    required String email,
+    required String password,
+    CancelToken? cancelToken,
+  }) {
     throw UnimplementedError();
   }
 
@@ -26,12 +31,13 @@ class _DummyAuthRepository implements AuthRepository {
     required String email,
     required String password,
     required String fullName,
+    CancelToken? cancelToken,
   }) {
     throw UnimplementedError();
   }
 
   @override
-  Future<void> logout() async {}
+  Future<void> logout({CancelToken? cancelToken}) async {}
 }
 
 class _DummyLogin extends Login {
@@ -41,6 +47,7 @@ class _DummyLogin extends Login {
   Future<UserModel> call({
     required String email,
     required String password,
+    CancelToken? cancelToken,
   }) {
     throw UnimplementedError();
   }
@@ -51,9 +58,10 @@ class _DummySignup extends Signup {
 
   @override
   Future<UserModel> call({
+    required String fullName,
     required String email,
     required String password,
-    required String fullName,
+    CancelToken? cancelToken,
   }) {
     throw UnimplementedError();
   }
@@ -146,7 +154,7 @@ void main() {
       await _pumpWithCubit(tester, cubit);
 
       await tester.enterText(_emailField(), 'test@example.com');
-      await tester.enterText(_passwordField(), 'Password123');
+      await tester.enterText(_passwordField(), 'Password123!');
 
       await tester.tap(_loginButton());
       await tester.pump();
@@ -161,7 +169,7 @@ void main() {
       await _pumpWithCubit(tester, cubit);
 
       await tester.enterText(_emailField(), 'invalid_email');
-      await tester.enterText(_passwordField(), 'Password123');
+      await tester.enterText(_passwordField(), 'Password123!');
 
       await tester.tap(_loginButton());
       await tester.pumpAndSettle();
@@ -189,7 +197,7 @@ void main() {
       await _pumpWithCubit(tester, cubit);
 
       await tester.enterText(_emailField(), 'test@example.com');
-      await tester.enterText(_passwordField(), 'Password123');
+      await tester.enterText(_passwordField(), 'Password123!');
 
       await tester.tap(_loginButton());
       await tester.pump();
@@ -199,7 +207,8 @@ void main() {
       expect(find.byKey(const Key('dashboard-screen')), findsNothing);
     });
 
-    testWidgets('navigates to SignUpScreen when "Register" tapped', (tester) async {
+    testWidgets('navigates to SignUpScreen when "Register" tapped',
+        (tester) async {
       final cubit = _SuccessLoginCubit();
       await _pumpWithCubit(tester, cubit);
 

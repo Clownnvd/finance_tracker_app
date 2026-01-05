@@ -11,6 +11,7 @@ class AppValidatedTextField extends StatelessWidget {
   final TextInputType keyboardType;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onFieldSubmitted;
   final bool enabled;
 
   const AppValidatedTextField({
@@ -24,6 +25,7 @@ class AppValidatedTextField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.textInputAction,
     this.onChanged,
+    this.onFieldSubmitted,
     this.enabled = true,
   });
 
@@ -33,9 +35,9 @@ class AppValidatedTextField extends StatelessWidget {
     final cs = theme.colorScheme;
 
     OutlineInputBorder border(Color color) => OutlineInputBorder(
-      borderRadius: AppRadius.medium,
-      borderSide: BorderSide(color: color, width: 1),
-    );
+          borderRadius: AppRadius.medium,
+          borderSide: BorderSide(color: color, width: 1),
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,6 +58,7 @@ class AppValidatedTextField extends StatelessWidget {
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           onChanged: onChanged,
+          onFieldSubmitted: onFieldSubmitted,
           enabled: enabled,
           decoration: InputDecoration(
             hintText: hintText ?? label,

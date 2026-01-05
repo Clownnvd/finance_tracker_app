@@ -36,4 +36,14 @@ class AppStrings {
   static const signupFailed = 'Signup failed';
 
   static const genericError = 'Something went wrong';
+
+    // Password rules
+  static const passwordNeedUppercase = 'Password must contain an uppercase letter';
+  static const passwordNeedLowercase = 'Password must contain a lowercase letter';
+  static const passwordNeedNumber = 'Password must contain a number';
+  static const passwordNeedSpecialChar = 'Password must contain a special character';
+
+  // Full name rules
+  static const fullNameMinLength2 = 'Full name must be at least 2 characters';
+  static const fullNameInvalidChars = 'Full name can only contain letters and spaces';
 }

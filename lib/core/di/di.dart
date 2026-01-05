@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 
-import '../network/dio_client.dart';
-import '../network/session_local_data_source.dart';
+import 'package:finance_tracker_app/core/network/session_local_data_source.dart';
+import 'package:finance_tracker_app/core/network/dio_client.dart';
+
 import 'package:finance_tracker_app/feature/users/auth/data/models/auth_remote_data_source.dart';
 import 'package:finance_tracker_app/feature/users/auth/data/repositories/auth_repository_impl.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/repositories/auth_repository.dart';
@@ -17,10 +19,21 @@ void setupDI({
   required String supabaseAnonKey,
 }) {
   // =======================
-  // Session storage (SharedPreferences for ALL platforms)
+  // Secure Storage (token)
   // =======================
+  getIt.registerLazySingleton<FlutterSecureStorage>(
+    () => const FlutterSecureStorage(
+      aOptions: AndroidOptions(
+        encryptedSharedPreferences: true,
+      ),
+      iOptions: IOSOptions(
+        accessibility: KeychainAccessibility.first_unlock_this_device,
+      ),
+    ),
+  );
+
   getIt.registerLazySingleton<SessionLocalDataSource>(
-    SessionLocalDataSourcePrefs.new,
+    () => SessionLocalDataSourceSecure(storage: getIt<FlutterSecureStorage>()),
   );
 
   // =======================
@@ -30,8 +43,7 @@ void setupDI({
     () => DioClient(
       baseUrl: supabaseUrl,
       anonKey: supabaseAnonKey,
-      tokenProvider: () =>
-          getIt<SessionLocalDataSource>().getAccessToken(),
+      tokenProvider: () => getIt<SessionLocalDataSource>().getAccessToken(),
     ).dio,
   );
 
@@ -58,6 +70,7 @@ void setupDI({
   getIt.registerLazySingleton<Login>(
     () => Login(getIt<AuthRepository>()),
   );
+
   getIt.registerLazySingleton<Signup>(
     () => Signup(getIt<AuthRepository>()),
   );

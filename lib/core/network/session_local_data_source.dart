@@ -1,4 +1,4 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 abstract class SessionLocalDataSource {
   Future<void> saveAccessToken(String token);
@@ -6,27 +6,39 @@ abstract class SessionLocalDataSource {
   Future<void> clear();
 }
 
-class SessionLocalDataSourcePrefs implements SessionLocalDataSource {
+/// Secure storage implementation.
+/// - Android: EncryptedSharedPreferences (API 23+) nếu bật encryptedSharedPreferences
+/// - iOS: Keychain
+class SessionLocalDataSourceSecure implements SessionLocalDataSource {
   static const _kAccessToken = 'access_token';
 
-  Future<SharedPreferences> get _prefs =>
-      SharedPreferences.getInstance();
+  final FlutterSecureStorage _storage;
+
+  SessionLocalDataSourceSecure({FlutterSecureStorage? storage})
+      : _storage = storage ??
+            const FlutterSecureStorage(
+              aOptions: AndroidOptions(
+                encryptedSharedPreferences: true,
+              ),
+              iOptions: IOSOptions(
+                accessibility: KeychainAccessibility.first_unlock_this_device,
+              ),
+            );
 
   @override
   Future<void> saveAccessToken(String token) async {
-    final prefs = await _prefs;
-    await prefs.setString(_kAccessToken, token);
+    await _storage.write(key: _kAccessToken, value: token);
   }
 
   @override
   Future<String?> getAccessToken() async {
-    final prefs = await _prefs;
-    return prefs.getString(_kAccessToken);
+    return _storage.read(key: _kAccessToken);
   }
 
   @override
   Future<void> clear() async {
-    final prefs = await _prefs;
-    await prefs.remove(_kAccessToken);
+    await _storage.delete(key: _kAccessToken);
+    // hoặc deleteAll() nếu bạn lưu nhiều keys session
+    // await _storage.deleteAll();
   }
 }

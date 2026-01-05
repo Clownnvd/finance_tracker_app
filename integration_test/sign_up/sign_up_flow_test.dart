@@ -1,11 +1,14 @@
+import 'package:dio/dio.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+import 'package:finance_tracker_app/core/constants/app_config.dart';
 import 'package:finance_tracker_app/core/constants/strings.dart';
+import 'package:finance_tracker_app/core/router/app_router.dart';
 import 'package:finance_tracker_app/core/theme/app_theme.dart';
-import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/repositories/auth_repository.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/login.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/sign_up.dart';
@@ -15,7 +18,11 @@ import 'package:finance_tracker_app/feature/users/auth/presentation/pages/sign_u
 
 class _DummyAuthRepository implements AuthRepository {
   @override
-  Future<UserModel> login({required String email, required String password}) {
+  Future<UserModel> login({
+    required String email,
+    required String password,
+    CancelToken? cancelToken,
+  }) {
     throw UnimplementedError();
   }
 
@@ -24,12 +31,13 @@ class _DummyAuthRepository implements AuthRepository {
     required String email,
     required String password,
     required String fullName,
+    CancelToken? cancelToken,
   }) {
     throw UnimplementedError();
   }
 
   @override
-  Future<void> logout() async {}
+  Future<void> logout({CancelToken? cancelToken}) async {}
 }
 
 class _DummyLogin extends Login {
@@ -39,6 +47,7 @@ class _DummyLogin extends Login {
   Future<UserModel> call({
     required String email,
     required String password,
+    CancelToken? cancelToken,
   }) {
     throw UnimplementedError();
   }
@@ -49,9 +58,10 @@ class _DummySignup extends Signup {
 
   @override
   Future<UserModel> call({
+    required String fullName,
     required String email,
     required String password,
-    required String fullName,
+    CancelToken? cancelToken,
   }) {
     throw UnimplementedError();
   }
@@ -61,11 +71,7 @@ class _SuccessAuthCubit extends AuthCubit {
   _SuccessAuthCubit() : super(login: _DummyLogin(), signup: _DummySignup());
 
   @override
-  Future<void> signup(
-    String fullName,
-    String email,
-    String password,
-  ) async {
+  Future<void> signup(String fullName, String email, String password) async {
     emit(AuthLoading());
     await Future<void>.delayed(const Duration(milliseconds: 50));
     emit(
@@ -86,11 +92,7 @@ class _ErrorAuthCubit extends AuthCubit {
       : super(login: _DummyLogin(), signup: _DummySignup());
 
   @override
-  Future<void> signup(
-    String fullName,
-    String email,
-    String password,
-  ) async {
+  Future<void> signup(String fullName, String email, String password) async {
     emit(AuthLoading());
     await Future<void>.delayed(const Duration(milliseconds: 50));
     emit(AuthFailure(message));
@@ -119,13 +121,16 @@ Future<void> _pumpWithCubit(
   await tester.pumpWidget(
     MaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorKey: AppRouter.navigatorKey,
       theme: AppTheme.light,
+      onGenerateRoute: AppRouter.onGenerateRoute,
       routes: {
+        // You can also use AppRoutes.signUp if you have it.
         '/': (_) => BlocProvider<AuthCubit>.value(
               value: cubit,
               child: const SignUpScreen(),
             ),
-        '/login': (_) => const _FakeLoginScreen(),
+        AppRoutes.login: (_) => const _FakeLoginScreen(),
       },
     ),
   );
@@ -153,16 +158,23 @@ void main() {
 
       await tester.enterText(_fullNameField(), 'Test User');
       await tester.enterText(_emailField(), 'test@example.com');
-      await tester.enterText(_passwordField(), 'Password1');
-      await tester.enterText(_confirmPasswordField(), 'Password1');
+
+      // Valid with unified validators (uppercase/lowercase/number/special)
+      await tester.enterText(_passwordField(), 'Password123!');
+      await tester.enterText(_confirmPasswordField(), 'Password123!');
 
       await tester.tap(_signUpButton());
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 900));
+      await tester.pump(); // start async
 
+      // Wait for cubit to emit success + UI to show snackbar
+      await tester.pump(const Duration(milliseconds: 200));
       expect(find.text(AppStrings.signUpSuccess), findsOneWidget);
 
-      await tester.pump(const Duration(milliseconds: 900));
+      // Wait for configured delay then navigation to login
+      await tester.pump(
+        const Duration(milliseconds: AppConfig.successSnackDelayMs + 50),
+      );
+
       expect(find.byKey(const Key('login-screen')), findsOneWidget);
     });
 
@@ -172,8 +184,8 @@ void main() {
 
       await tester.enterText(_fullNameField(), 'Test User');
       await tester.enterText(_emailField(), 'invalid_email');
-      await tester.enterText(_passwordField(), 'Password1');
-      await tester.enterText(_confirmPasswordField(), 'Password1');
+      await tester.enterText(_passwordField(), 'Password123!');
+      await tester.enterText(_confirmPasswordField(), 'Password123!');
 
       await tester.tap(_signUpButton());
       await tester.pumpAndSettle();
@@ -195,6 +207,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(AppStrings.passwordMinLength8), findsOneWidget);
+      expect(find.text(AppStrings.signUpSuccess), findsNothing);
     });
 
     testWidgets('signup flow with password mismatch', (tester) async {
@@ -203,8 +216,8 @@ void main() {
 
       await tester.enterText(_fullNameField(), 'Test User');
       await tester.enterText(_emailField(), 'test@example.com');
-      await tester.enterText(_passwordField(), 'Password1');
-      await tester.enterText(_confirmPasswordField(), 'Password2');
+      await tester.enterText(_passwordField(), 'Password123!');
+      await tester.enterText(_confirmPasswordField(), 'Password321!');
 
       await tester.tap(_signUpButton());
       await tester.pumpAndSettle();
@@ -212,20 +225,21 @@ void main() {
       expect(find.text(AppStrings.passwordNotMatch), findsOneWidget);
     });
 
-    testWidgets('signup flow with network error', (tester) async {
+    testWidgets('shows error SnackBar on signup failure', (tester) async {
       final cubit = _ErrorAuthCubit('Network error');
       await _pumpWithCubit(tester, cubit);
 
       await tester.enterText(_fullNameField(), 'Test User');
       await tester.enterText(_emailField(), 'test@example.com');
-      await tester.enterText(_passwordField(), 'Password1');
-      await tester.enterText(_confirmPasswordField(), 'Password1');
+      await tester.enterText(_passwordField(), 'Password123!');
+      await tester.enterText(_confirmPasswordField(), 'Password123!');
 
       await tester.tap(_signUpButton());
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Network error'), findsOneWidget);
+      expect(find.byKey(const Key('login-screen')), findsNothing);
     });
 
     testWidgets('signup flow with existing email error', (tester) async {
@@ -234,14 +248,15 @@ void main() {
 
       await tester.enterText(_fullNameField(), 'Test User');
       await tester.enterText(_emailField(), 'test@example.com');
-      await tester.enterText(_passwordField(), 'Password1');
-      await tester.enterText(_confirmPasswordField(), 'Password1');
+      await tester.enterText(_passwordField(), 'Password123!');
+      await tester.enterText(_confirmPasswordField(), 'Password123!');
 
       await tester.tap(_signUpButton());
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Email already exists'), findsOneWidget);
+      expect(find.byKey(const Key('login-screen')), findsNothing);
     });
   });
 }

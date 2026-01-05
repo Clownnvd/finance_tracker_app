@@ -68,7 +68,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(height: AppSpacing.xl),
                   Text(
                     'Recent Transactions',
-                    style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                    style: tt.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   const TransactionTile(

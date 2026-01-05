@@ -1,8 +1,8 @@
-import 'package:finance_tracker_app/core/error/exceptions.dart';
-import 'package:finance_tracker_app/core/constants/strings.dart';
+import 'package:dio/dio.dart';
 
-import '../entities/user_model.dart';
-import '../repositories/auth_repository.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/repositories/auth_repository.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/validators/auth_validators.dart';
 
 class Login {
   final AuthRepository repository;
@@ -12,36 +12,24 @@ class Login {
   Future<UserModel> call({
     required String email,
     required String password,
-  }) {
+    CancelToken? cancelToken,
+  }) async {
+    // =======================
+    // Unified domain validation
+    // =======================
+    AuthValidators.validateEmail(email);
+    AuthValidators.validatePassword(password);
+
+    // Email should be trimmed, password should NOT
     final trimmedEmail = email.trim();
 
-    _validateEmail(trimmedEmail);
-    _validatePassword(password);
-
+    // =======================
+    // Delegate to repository
+    // =======================
     return repository.login(
       email: trimmedEmail,
       password: password,
+      cancelToken: cancelToken,
     );
-  }
-
-  void _validateEmail(String email) {
-    if (email.isEmpty) {
-      throw const ValidationException(AppStrings.emailRequired);
-    }
-
-    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
-    if (!emailRegex.hasMatch(email)) {
-      throw const ValidationException(AppStrings.invalidEmailFormat);
-    }
-  }
-
-  void _validatePassword(String password) {
-    if (password.isEmpty) {
-      throw const ValidationException(AppStrings.passwordRequired);
-    }
-
-    if (password.length < 8) {
-      throw const ValidationException(AppStrings.passwordMinLength8);
-    }
   }
 }

@@ -1,88 +1,226 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logger/logger.dart';
+import 'dart:math';
 
-import 'auth_state.dart';
-import '../../domain/usecases/login.dart';
-import '../../domain/usecases/sign_up.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:finance_tracker_app/core/constants/app_config.dart';
 import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/error/exceptions.dart';
+import 'package:finance_tracker_app/core/utils/app_logger.dart';
+
+import '../../domain/usecases/login.dart';
+import '../../domain/usecases/sign_up.dart';
+import 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final Login _login;
   final Signup _signup;
-  final Logger _logger;
+
+  CancelToken? _cancelToken;
 
   AuthCubit({
     required Login login,
     required Signup signup,
-    Logger? logger,
   })  : _login = login,
         _signup = signup,
-        _logger = logger ?? Logger(),
         super(AuthInitial());
 
+  // =======================
+  // Public API
+  // =======================
+
+  /// Executes login flow with retry, cancellation, and error handling.
   Future<void> login(String email, String password) async {
-    if (state is AuthSuccess) {
-      emit(AuthFailure(AppStrings.genericError));
-      return;
-    }
+    if (state is AuthLoading) return;
 
-    await _runAuthAction(
-      action: () => _login(email: email, password: password),
-      successLog: AppStrings.login,
+    _cancelOngoing();
+    _cancelToken = CancelToken();
+
+    AppLogger.auth('Login started');
+
+    final runner = _AuthActionRunner(
+      label: AppStrings.login,
+      maxAttempts: AppConfig.maxRetryAttempts,
+      onLoading: () => emit(AuthLoading()),
+      onSuccess: (user) => emit(AuthSuccess(user)),
+      onFailure: (message) => emit(AuthFailure(message)),
+      onCancelled: () {
+        AppLogger.auth('${AppStrings.login} cancelled');
+      },
     );
+
+    await runner.run(() => _login(
+          email: email,
+          password: password,
+          cancelToken: _cancelToken,
+        ));
   }
 
+  /// Executes signup flow with retry, cancellation, and error handling.
   Future<void> signup(String fullName, String email, String password) async {
-    await _runAuthAction(
-      action: () =>
-          _signup(fullName: fullName, email: email, password: password),
-      successLog: AppStrings.signUpTitle,
+    if (state is AuthLoading) return;
+
+    _cancelOngoing();
+    _cancelToken = CancelToken();
+
+    AppLogger.auth('Signup started');
+
+    final runner = _AuthActionRunner(
+      label: AppStrings.signUpTitle,
+      maxAttempts: AppConfig.maxRetryAttempts,
+      onLoading: () => emit(AuthLoading()),
+      onSuccess: (user) => emit(AuthSuccess(user)),
+      onFailure: (message) => emit(AuthFailure(message)),
+      onCancelled: () {
+        AppLogger.auth('${AppStrings.signUpTitle} cancelled');
+      },
     );
+
+    await runner.run(() => _signup(
+          fullName: fullName,
+          email: email,
+          password: password,
+          cancelToken: _cancelToken,
+        ));
   }
 
-  Future<void> _runAuthAction({
-    required Future<dynamic> Function() action,
-    required String successLog,
-  }) async {
-    emit(AuthLoading());
+  /// Cancels any ongoing authentication request and resets state.
+  void cancel() {
+    AppLogger.auth('Auth flow cancelled by user');
+    _cancelOngoing();
+    emit(AuthInitial());
+  }
 
-    const maxAttempts = 2;
+  // =======================
+  // Internal helpers
+  // =======================
+
+  /// Cancels the current request if it is still active.
+  void _cancelOngoing() {
+    if (_cancelToken != null && !_cancelToken!.isCancelled) {
+      _cancelToken!.cancel();
+    }
+    _cancelToken = null;
+  }
+
+  @override
+  Future<void> close() {
+    _cancelOngoing();
+    return super.close();
+  }
+}
+
+/// Helper responsible for executing an auth-related action with:
+/// - Retry logic
+/// - Exponential backoff
+/// - Cancellation support
+/// - Centralized error handling
+class _AuthActionRunner {
+  final String label;
+  final int maxAttempts;
+
+  final void Function() onLoading;
+  final void Function(dynamic user) onSuccess;
+  final void Function(String message) onFailure;
+  final void Function() onCancelled;
+
+  _AuthActionRunner({
+    required this.label,
+    required this.maxAttempts,
+    required this.onLoading,
+    required this.onSuccess,
+    required this.onFailure,
+    required this.onCancelled,
+  });
+
+  /// Runs the provided action with retry and error handling.
+  Future<void> run(Future<dynamic> Function() action) async {
+    onLoading();
+
     var attempt = 0;
 
-    while (true) {
+    while (attempt < maxAttempts) {
       try {
         final user = await action();
-        _logger.i('$successLog: ${user.email}');
-        emit(AuthSuccess(user));
+        AppLogger.auth('$label success: ${user.email}');
+        onSuccess(user);
         return;
+      }
+
+      // -----------------------
+      // Cancellation handling
+      // -----------------------
+      on DioException catch (e) {
+        if (CancelToken.isCancel(e)) {
+          onCancelled();
+          return;
+        }
+
+        AppLogger.network('$label DioException', error: e);
+        attempt++;
+
+        if (attempt >= maxAttempts) {
+          onFailure(AppStrings.genericError);
+          return;
+        }
+
+        await _backoff(attempt);
+      }
+
+      // -----------------------
+      // Retryable domain errors
+      // -----------------------
+      on TimeoutRequestException catch (e) {
+        attempt++;
+        AppLogger.network(
+          '$label timeout (attempt $attempt/$maxAttempts)',
+          error: e,
+        );
+
+        if (attempt >= maxAttempts) {
+          onFailure(e.message);
+          return;
+        }
+
+        await _backoff(attempt);
       } on NetworkException catch (e) {
         attempt++;
-        _logger.w(e.message);
+        AppLogger.network(
+          '$label network error (attempt $attempt/$maxAttempts)',
+          error: e,
+        );
+
         if (attempt >= maxAttempts) {
-          emit(AuthFailure(e.message));
+          onFailure(e.message);
           return;
         }
-      } on TimeoutRequestException catch (e) {
-        attempt++;
-        _logger.w(e.message);
-        if (attempt >= maxAttempts) {
-          emit(AuthFailure(e.message));
-          return;
-        }
-      } on AuthException catch (e) {
-        _logger.w(e.message);
-        emit(AuthFailure(e.message));
-        return;
-      } on AppException catch (e) {
-        _logger.w(e.message);
-        emit(AuthFailure(e.message));
+
+        await _backoff(attempt);
+      }
+
+      // -----------------------
+      // Non-retryable errors
+      // -----------------------
+      on AppException catch (e) {
+        AppLogger.auth('$label failed', error: e);
+        onFailure(e.message);
         return;
       } catch (e, s) {
-        _logger.e(AppStrings.genericError, error: e, stackTrace: s);
-        emit(AuthFailure(AppStrings.genericError));
+        AppLogger.error(
+          '$label unexpected error',
+          error: e,
+          stackTrace: s,
+        );
+        onFailure(AppStrings.genericError);
         return;
       }
     }
+  }
+
+  /// Applies exponential backoff before the next retry attempt.
+  Future<void> _backoff(int attempt) async {
+    final seconds = pow(2, attempt).toInt();
+    AppLogger.network('Retrying in $seconds seconds...');
+    await Future.delayed(Duration(seconds: seconds));
   }
 }
