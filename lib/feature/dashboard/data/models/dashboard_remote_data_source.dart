@@ -1,51 +1,95 @@
 import 'package:dio/dio.dart';
-import 'package:finance_tracker_app/core/error/exception_mapper.dart';
+import 'package:finance_tracker_app/core/network/dio_client.dart';
+import 'package:finance_tracker_app/core/network/supabase_endpoints.dart';
+import 'package:finance_tracker_app/feature/dashboard/domain/entities/dashboard_models.dart';
 
-abstract class DashboardRemoteDataSource {
-  Future<List<dynamic>> fetchMonthTotals(DateTime month);
-  Future<List<Map<String, dynamic>>> fetchRecentTransactions();
-}
+class DashboardRemoteDataSource {
+  final DioClient _client;
 
-class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
-  final Dio dio;
+  DashboardRemoteDataSource(this._client);
 
-  DashboardRemoteDataSourceImpl(this.dio);
+  Dio get _dio => _client.dio;
 
-  @override
-  Future<List<dynamic>> fetchMonthTotals(DateTime month) async {
-    try {
-      final monthStart =
-          DateTime(month.year, month.month, 1).toIso8601String().split('T').first;
-
-      final res = await dio.get(
-        '/rest/v1/v_month_totals',
-        queryParameters: {
-          'month': 'eq.$monthStart',
-          'select': 'type,total',
-        },
-      );
-
-      return List<dynamic>.from(res.data);
-    } catch (e) {
-      throw ExceptionMapper.map(e);
-    }
+  static String _dateOnly(DateTime d) {
+    final y = d.year.toString().padLeft(4, '0');
+    final m = d.month.toString().padLeft(2, '0');
+    final day = d.day.toString().padLeft(2, '0');
+    return '$y-$m-$day';
   }
 
-  @override
-  Future<List<Map<String, dynamic>>> fetchRecentTransactions() async {
-    try {
-      final res = await dio.get(
-        '/rest/v1/transactions',
-        queryParameters: {
-          'select': 'amount,type,date,categories(name,icon)',
-          'order': 'date.desc',
-          'limit': '5',
-        },
-      );
+  DateTime _monthStart(DateTime d) => DateTime(d.year, d.month, 1);
+  DateTime _monthEnd(DateTime d) => DateTime(d.year, d.month + 1, 0);
 
-      return List<Map<String, dynamic>>.from(res.data);
-    } catch (e) {
-      throw ExceptionMapper.map(e);
-    }
+  Future<DashboardSummaryModel> fetchSummaryForMonth(DateTime month) async {
+    final start = _monthStart(month);
+
+    final res = await _dio.get(
+      SupabaseEndpoints.table('v_month_totals'),
+      queryParameters: {
+        'select': 'type,month,total',
+        'month': 'eq.${_dateOnly(start)}',
+      },
+    );
+
+    return DashboardSummaryModel.fromMonthTotals(res.data as List<dynamic>);
+  }
+
+  Future<List<DashboardTransactionModel>> fetchRecentTransactions({
+    int limit = 20,
+  }) async {
+    final res = await _dio.get(
+      SupabaseEndpoints.table('transactions'),
+      queryParameters: {
+        'select': 'id,type,amount,note,date,category_id,categories(name,icon)',
+        'order': 'date.desc',
+        'limit': limit,
+      },
+    );
+
+    final list = (res.data as List).cast<Map<String, dynamic>>();
+    return list.map(DashboardTransactionModel.fromJson).toList();
+  }
+
+  Future<List<DashboardTransactionModel>> fetchRecentTransactionsForMonth({
+    required DateTime month,
+    int limit = 20,
+  }) async {
+    final start = _monthStart(month);
+    final end = _monthEnd(month);
+
+    final res = await _dio.get(
+      SupabaseEndpoints.table('transactions'),
+      queryParameters: {
+        'select': 'id,type,amount,note,date,category_id,categories(name,icon)',
+        'date': 'gte.${_dateOnly(start)}',
+        'date': 'lte.${_dateOnly(end)}',
+        'order': 'date.desc',
+        'limit': limit,
+      },
+    );
+
+    final list = (res.data as List).cast<Map<String, dynamic>>();
+    return list.map(DashboardTransactionModel.fromJson).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> fetchCategoryBreakdownForMonth({
+    required String uid,
+    required DateTime month,
+    required String type,
+  }) async {
+    final start = _monthStart(month);
+    final end = _monthEnd(month);
+
+    final res = await _dio.post(
+      '${SupabaseEndpoints.rest}/rpc/category_totals',
+      data: {
+        'uid': uid,
+        'start_date': _dateOnly(start),
+        'end_date': _dateOnly(end),
+        'cat_type': type,
+      },
+    );
+
+    return (res.data as List).cast<Map<String, dynamic>>();
   }
 }

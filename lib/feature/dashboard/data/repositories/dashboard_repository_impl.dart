@@ -1,38 +1,57 @@
-import 'package:finance_tracker_app/feature/dashboard/domain/entities/dashboard_models.dart';
-import '../../domain/repositories/dashboard_repository.dart';
-import '../models/dashboard_remote_data_source.dart';
+import 'package:finance_tracker_app/core/network/user_id_local_data_source.dart';
+import 'package:finance_tracker_app/feature/dashboard/data/mappers/dashboard_mappers.dart';
+import 'package:finance_tracker_app/feature/dashboard/data/models/dashboard_remote_data_source.dart';
+import 'package:finance_tracker_app/feature/dashboard/domain/entities/dashboard_entities.dart';
+import 'package:finance_tracker_app/feature/dashboard/domain/repositories/dashboard_repository.dart';
 
 class DashboardRepositoryImpl implements DashboardRepository {
-  final DashboardRemoteDataSource remote;
+  final DashboardRemoteDataSource _remote;
+  final UserIdLocalDataSource _userIdLocal;
 
-  DashboardRepositoryImpl(this.remote);
+  DashboardRepositoryImpl({
+    required DashboardRemoteDataSource remote,
+    required UserIdLocalDataSource userIdLocal,
+  })  : _remote = remote,
+        _userIdLocal = userIdLocal;
 
   @override
-  Future<(DashboardSummaryModel, List<DashboardTransactionModel>)> getDashboard() async {
-    final totalsRaw = await remote.fetchMonthTotals(DateTime.now());
-    final txRaw = await remote.fetchRecentTransactions();
+  Future<DashboardSummary> getSummaryForMonth(DateTime month) async {
+    final model = await _remote.fetchSummaryForMonth(month);
+    return model.toEntity();
+  }
 
-    final summaryModel =
-        DashboardSummaryModel.fromMonthTotals(totalsRaw);
+  @override
+  Future<List<DashboardTransaction>> getRecentTransactions({int limit = 20}) async {
+    final models = await _remote.fetchRecentTransactions(limit: limit);
+    return models.map((m) => m.toEntity()).toList();
+  }
 
-    final transactions = txRaw
-        .map(DashboardTransactionModel.fromJson)
-        .map(
-          (m) => DashboardTransactionModel(
-            title: m.title,
-            icon: m.icon,
-            date: m.date,
-            amount: m.amount,
-            isIncome: m.isIncome,
-          ),
-        )
-        .toList();
-
-    final summary = DashboardSummaryModel(
-      income: summaryModel.income,
-      expenses: summaryModel.expenses,
+  @override
+  Future<List<DashboardTransaction>> getRecentTransactionsForMonth({
+    required DateTime month,
+    int limit = 20,
+  }) async {
+    final models = await _remote.fetchRecentTransactionsForMonth(
+      month: month,
+      limit: limit,
     );
+    return models.map((m) => m.toEntity()).toList();
+  }
 
-    return (summary, transactions);
+  @override
+  Future<List<Map<String, dynamic>>> getCategoryBreakdownForMonth({
+    required DateTime month,
+    required String type,
+  }) async {
+    final uid = await _userIdLocal.getUserId();
+    if (uid == null || uid.isEmpty) {
+      throw Exception('Missing user_id');
+    }
+
+    return _remote.fetchCategoryBreakdownForMonth(
+      uid: uid,
+      month: month,
+      type: type,
+    );
   }
 }

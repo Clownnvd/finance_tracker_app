@@ -1,5 +1,19 @@
-import 'package:finance_tracker_app/feature/dashboard/domain/entities/dashboard_models.dart';
+import 'package:finance_tracker_app/feature/dashboard/domain/entities/dashboard_entities.dart';
 
 abstract class DashboardRepository {
-  Future<(DashboardSummaryModel, List<DashboardTransactionModel>)> getDashboard();
+  Future<DashboardSummary> getSummaryForMonth(DateTime month);
+
+  Future<List<DashboardTransaction>> getRecentTransactions({
+    int limit,
+  });
+
+  Future<List<DashboardTransaction>> getRecentTransactionsForMonth({
+    required DateTime month,
+    int limit,
+  });
+
+  Future<List<Map<String, dynamic>>> getCategoryBreakdownForMonth({
+    required DateTime month,
+    required String type,
+  });
 }

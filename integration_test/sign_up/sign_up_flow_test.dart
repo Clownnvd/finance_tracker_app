@@ -72,13 +72,9 @@ class _SuccessAuthCubit extends AuthCubit {
 
   @override
   Future<void> signup(String fullName, String email, String password) async {
-    emit(AuthLoading());
+    emit(AuthLoading(attempt: 1, maxAttempts: AppConfig.maxRetryAttempts));
     await Future<void>.delayed(const Duration(milliseconds: 50));
-    emit(
-      AuthSuccess(
-        UserModel(id: '1', email: email, fullName: fullName),
-      ),
-    );
+    emit(AuthSuccess(UserModel(id: '1', email: email, fullName: fullName)));
   }
 
   @override
@@ -93,7 +89,7 @@ class _ErrorAuthCubit extends AuthCubit {
 
   @override
   Future<void> signup(String fullName, String email, String password) async {
-    emit(AuthLoading());
+    emit(AuthLoading(attempt: 1, maxAttempts: AppConfig.maxRetryAttempts));
     await Future<void>.delayed(const Duration(milliseconds: 50));
     emit(AuthFailure(message));
   }
@@ -125,7 +121,6 @@ Future<void> _pumpWithCubit(
       theme: AppTheme.light,
       onGenerateRoute: AppRouter.onGenerateRoute,
       routes: {
-        // You can also use AppRoutes.signUp if you have it.
         '/': (_) => BlocProvider<AuthCubit>.value(
               value: cubit,
               child: const SignUpScreen(),
@@ -158,19 +153,15 @@ void main() {
 
       await tester.enterText(_fullNameField(), 'Test User');
       await tester.enterText(_emailField(), 'test@example.com');
-
-      // Valid with unified validators (uppercase/lowercase/number/special)
       await tester.enterText(_passwordField(), 'Password123!');
       await tester.enterText(_confirmPasswordField(), 'Password123!');
 
       await tester.tap(_signUpButton());
-      await tester.pump(); // start async
-
-      // Wait for cubit to emit success + UI to show snackbar
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
+
       expect(find.text(AppStrings.signUpSuccess), findsOneWidget);
 
-      // Wait for configured delay then navigation to login
       await tester.pump(
         const Duration(milliseconds: AppConfig.successSnackDelayMs + 50),
       );

@@ -27,18 +27,18 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() {
-    // If you use any fallback values for mocktail.
-    registerFallbackValue(AuthInitial());
+    registerFallbackValue(const AuthInitial());
   });
 
   group('LoginScreen golden', () {
     testWidgets('initial state', (tester) async {
       final cubit = MockAuthCubit();
-      when(() => cubit.state).thenReturn(AuthInitial());
+
+      when(() => cubit.state).thenReturn(const AuthInitial());
       whenListen<AuthState>(
         cubit,
         const Stream<AuthState>.empty(),
-        initialState: AuthInitial(),
+        initialState: const AuthInitial(),
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
@@ -52,18 +52,18 @@ void main() {
 
     testWidgets('validation errors', (tester) async {
       final cubit = MockAuthCubit();
-      when(() => cubit.state).thenReturn(AuthInitial());
+
+      when(() => cubit.state).thenReturn(const AuthInitial());
       whenListen<AuthState>(
         cubit,
         const Stream<AuthState>.empty(),
-        initialState: AuthInitial(),
+        initialState: const AuthInitial(),
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
       await tester.pumpAndSettle();
 
-      final buttonFinder =
-          find.widgetWithText(ElevatedButton, AppStrings.login);
+      final buttonFinder = find.widgetWithText(ElevatedButton, AppStrings.login);
       await tester.ensureVisible(buttonFinder);
       await tester.tap(buttonFinder);
       await tester.pumpAndSettle();
@@ -76,11 +76,14 @@ void main() {
 
     testWidgets('loading state', (tester) async {
       final cubit = MockAuthCubit();
-      when(() => cubit.state).thenReturn(AuthLoading());
+
+      const loading = AuthLoading(attempt: 1, maxAttempts: 3);
+
+      when(() => cubit.state).thenReturn(loading);
       whenListen<AuthState>(
         cubit,
-        Stream<AuthState>.fromIterable([AuthLoading()]),
-        initialState: AuthLoading(),
+        Stream<AuthState>.fromIterable([loading]),
+        initialState: loading,
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
@@ -94,11 +97,14 @@ void main() {
 
     testWidgets('error state', (tester) async {
       final cubit = MockAuthCubit();
-      when(() => cubit.state).thenReturn( AuthFailure(AppStrings.genericError));
+
+      const failure = AuthFailure(AppStrings.genericError);
+
+      when(() => cubit.state).thenReturn(failure);
       whenListen<AuthState>(
         cubit,
-        Stream<AuthState>.fromIterable([ AuthFailure(AppStrings.genericError)]),
-        initialState:  AuthFailure(AppStrings.genericError),
+        Stream<AuthState>.fromIterable([failure]),
+        initialState: failure,
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));

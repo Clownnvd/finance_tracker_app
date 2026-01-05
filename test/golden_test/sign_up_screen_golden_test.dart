@@ -27,18 +27,18 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() {
-    registerFallbackValue(AuthInitial());
+    registerFallbackValue(const AuthInitial());
   });
 
   group('SignUpScreen golden', () {
     testWidgets('initial state', (tester) async {
       final cubit = MockAuthCubit();
 
-      when(() => cubit.state).thenReturn(AuthInitial());
+      when(() => cubit.state).thenReturn(const AuthInitial());
       whenListen<AuthState>(
         cubit,
         const Stream<AuthState>.empty(),
-        initialState: AuthInitial(),
+        initialState: const AuthInitial(),
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
@@ -53,11 +53,11 @@ void main() {
     testWidgets('validation errors', (tester) async {
       final cubit = MockAuthCubit();
 
-      when(() => cubit.state).thenReturn(AuthInitial());
+      when(() => cubit.state).thenReturn(const AuthInitial());
       whenListen<AuthState>(
         cubit,
         const Stream<AuthState>.empty(),
-        initialState: AuthInitial(),
+        initialState: const AuthInitial(),
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
@@ -78,11 +78,13 @@ void main() {
     testWidgets('loading state', (tester) async {
       final cubit = MockAuthCubit();
 
-      when(() => cubit.state).thenReturn(AuthLoading());
+      const loading = AuthLoading(attempt: 1, maxAttempts: 3);
+
+      when(() => cubit.state).thenReturn(loading);
       whenListen<AuthState>(
         cubit,
-        Stream<AuthState>.fromIterable([AuthLoading()]),
-        initialState: AuthLoading(),
+        Stream<AuthState>.fromIterable([loading]),
+        initialState: loading,
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
@@ -97,7 +99,8 @@ void main() {
     testWidgets('error state', (tester) async {
       final cubit = MockAuthCubit();
 
-      final failure = AuthFailure(AppStrings.genericError);
+      const failure = AuthFailure(AppStrings.genericError);
+
       when(() => cubit.state).thenReturn(failure);
       whenListen<AuthState>(
         cubit,

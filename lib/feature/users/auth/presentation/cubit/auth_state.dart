@@ -1,18 +1,34 @@
 import 'package:equatable/equatable.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 
-sealed class AuthState extends Equatable {
+abstract class AuthState extends Equatable {
+  const AuthState();
+
   @override
   List<Object?> get props => [];
 }
 
-class AuthInitial extends AuthState {}
+class AuthInitial extends AuthState {
+  const AuthInitial();
+}
 
-class AuthLoading extends AuthState {}
+class AuthLoading extends AuthState {
+  final int attempt;
+  final int maxAttempts;
+
+  const AuthLoading({
+    required this.attempt,
+    required this.maxAttempts,
+  });
+
+  @override
+  List<Object?> get props => [attempt, maxAttempts];
+}
 
 class AuthSuccess extends AuthState {
   final UserModel user;
-  AuthSuccess(this.user);
+
+  const AuthSuccess(this.user);
 
   @override
   List<Object?> get props => [user];
@@ -20,7 +36,8 @@ class AuthSuccess extends AuthState {
 
 class AuthFailure extends AuthState {
   final String message;
-  AuthFailure(this.message);
+
+  const AuthFailure(this.message);
 
   @override
   List<Object?> get props => [message];

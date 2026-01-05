@@ -72,7 +72,7 @@ class _SuccessLoginCubit extends AuthCubit {
 
   @override
   Future<void> login(String email, String password) async {
-    emit(AuthLoading());
+    emit(const AuthLoading(attempt: 1, maxAttempts: 3));
     await Future<void>.delayed(const Duration(milliseconds: 50));
     emit(AuthSuccess(UserModel(id: '1', email: email, fullName: 'User')));
   }
@@ -89,7 +89,7 @@ class _ErrorLoginCubit extends AuthCubit {
 
   @override
   Future<void> login(String email, String password) async {
-    emit(AuthLoading());
+    emit(const AuthLoading(attempt: 1, maxAttempts: 3));
     await Future<void>.delayed(const Duration(milliseconds: 50));
     emit(AuthFailure(message));
   }
