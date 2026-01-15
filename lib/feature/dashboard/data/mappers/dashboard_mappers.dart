@@ -20,3 +20,12 @@ extension DashboardTransactionModelX on DashboardTransactionModel {
         categoryId: categoryId,
       );
 }
+
+extension DashboardCategoryBreakdownModelX on DashboardCategoryBreakdownModel {
+  DashboardCategoryBreakdownItem toEntity() => DashboardCategoryBreakdownItem(
+        categoryId: categoryId,
+        name: name,
+        total: total,
+        percent: percent,
+      );
+}

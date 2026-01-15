@@ -1,43 +1,45 @@
 import 'dart:async';
-import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode, PlatformDispatcher;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:window_size/window_size.dart';
 
 import 'package:finance_tracker_app/core/di/di.dart';
 import 'package:finance_tracker_app/core/router/app_router.dart';
 import 'package:finance_tracker_app/core/theme/app_theme.dart';
 import 'package:finance_tracker_app/shared/widgets/error_boundary.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
 
-const double windowWidth = 500;
-const double windowHeight = 854;
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
+import 'package:finance_tracker_app/feature/dashboard/presentation/cubit/dashboard_cubit.dart';
+import 'package:finance_tracker_app/feature/transactions/presentation/select_category/cubit/select_category_cubit.dart';
+import 'package:finance_tracker_app/feature/transactions/presentation/add_transaction/cubit/add_transaction_cubit.dart';
+import 'package:finance_tracker_app/feature/transactions/presentation/transaction_history/cubit/transaction_history_cubit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await runZonedGuarded(() async {
-    final initResult = await _initApp();
+  FlutterError.onError = (details) async {
+    FlutterError.presentError(details);
+    await _reportCrash(details.exception, details.stack ?? StackTrace.current, details: details);
+  };
 
-    if (initResult == null) {
-      _setupWindow();
-      runApp(
-        ErrorBoundary(
-          reporter: _reportCrash,
-          child: const AppRoot(),
-        ),
-      );
-    } else {
-      runApp(
-        ErrorBoundary(
-          reporter: _reportCrash,
-          child: ErrorApp(errorMessage: initResult),
-        ),
-      );
-    }
+  PlatformDispatcher.instance.onError = (error, stack) {
+    _reportCrash(error, stack);
+    return true;
+  };
+
+  await runZonedGuarded(() async {
+    final initError = await _initApp();
+
+    runApp(
+      ErrorBoundary(
+        reporter: _reportCrash,
+        child: initError == null
+            ? const AppRoot()
+            : ErrorApp(errorMessage: initError),
+      ),
+    );
   }, (error, stack) async {
     await _reportCrash(error, stack);
   });
@@ -67,9 +69,7 @@ Future<String?> _initApp() async {
 
 String _requireEnv(String key) {
   final v = dotenv.env[key]?.trim();
-  if (v == null || v.isEmpty) {
-    throw Exception('Missing $key in .env');
-  }
+  if (v == null || v.isEmpty) throw Exception('Missing $key in .env');
   return v;
 }
 
@@ -88,25 +88,6 @@ void _validateAnonKey(String anonKey) {
   }
 }
 
-void _setupWindow() {
-  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-    setWindowTitle('Finance Tracker');
-    setWindowMinSize(const Size(windowWidth, windowHeight));
-    setWindowMaxSize(const Size(windowWidth, windowHeight));
-
-    getCurrentScreen().then((screen) {
-      if (screen == null) return;
-      setWindowFrame(
-        Rect.fromCenter(
-          center: screen.frame.center,
-          width: windowWidth,
-          height: windowHeight,
-        ),
-      );
-    });
-  }
-}
-
 class AppRoot extends StatelessWidget {
   const AppRoot({super.key});
 
@@ -115,6 +96,10 @@ class AppRoot extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>(create: (_) => getIt<AuthCubit>()),
+        BlocProvider<DashboardCubit>(create: (_) => getIt<DashboardCubit>()),
+        BlocProvider<SelectCategoryCubit>(create: (_) => getIt<SelectCategoryCubit>()),
+        BlocProvider<AddTransactionCubit>(create: (_) => getIt<AddTransactionCubit>()),
+        BlocProvider<TransactionHistoryCubit>(create: (_) => getIt<TransactionHistoryCubit>()),
       ],
       child: const MyApp(),
     );
@@ -128,16 +113,28 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+
+      // Make UI resilient across devices:
+      // - keeps user's text scale but prevents extreme values from breaking layout.
       builder: (context, child) {
         final mq = MediaQuery.of(context);
+
+        // Flutter 3.16+ uses TextScaler
+        final scaler = mq.textScaler;
+        final clamped = TextScaler.linear(
+          scaler.scale(1.0).clamp(0.9, 1.2),
+        );
+
         return MediaQuery(
-          data: mq.copyWith(textScaler: const TextScaler.linear(1.0)),
+          data: mq.copyWith(textScaler: clamped),
           child: child ?? const SizedBox.shrink(),
         );
       },
+
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.light,
+
       navigatorKey: AppRouter.navigatorKey,
       initialRoute: AppRoutes.welcome,
       onGenerateRoute: AppRouter.onGenerateRoute,
@@ -156,32 +153,47 @@ class ErrorApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       home: Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.error_outline, size: 64),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  'App initialization failed',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline, size: 64),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'App initialization failed',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      errorMessage,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Text(
+                      kReleaseMode
+                          ? 'Please check your .env and Supabase config.'
+                          : 'Fix the error above and restart.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    if (!kReleaseMode && kIsWeb) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        '(Web) If .env is not loading, ensure you added it correctly for web builds.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ],
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  errorMessage,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  'Please check your .env and Supabase config.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -197,4 +209,5 @@ Future<void> _reportCrash(
 }) async {
   debugPrint('💥 Unhandled error: $error');
   debugPrintStack(stackTrace: stack);
+  // TODO: integrate Crashlytics/Sentry here for production.
 }

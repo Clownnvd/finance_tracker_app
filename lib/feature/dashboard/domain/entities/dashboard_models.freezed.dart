@@ -277,6 +277,7 @@ as double,
 
 }
 
+
 /// @nodoc
 mixin _$DashboardTransactionModel {
 
@@ -287,6 +288,8 @@ mixin _$DashboardTransactionModel {
 @pragma('vm:prefer-inline')
 $DashboardTransactionModelCopyWith<DashboardTransactionModel> get copyWith => _$DashboardTransactionModelCopyWithImpl<DashboardTransactionModel>(this as DashboardTransactionModel, _$identity);
 
+  /// Serializes this DashboardTransactionModel to a JSON map.
+  Map<String, dynamic> toJson();
 
 
 @override
@@ -294,7 +297,7 @@ bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardTransactionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.date, date) || other.date == date)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.isIncome, isIncome) || other.isIncome == isIncome)&&(identical(other.note, note) || other.note == note)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,id,title,icon,date,amount,isIncome,note,categoryId);
 
@@ -476,11 +479,11 @@ return $default(_that.id,_that.title,_that.icon,_that.date,_that.amount,_that.is
 }
 
 /// @nodoc
-
+@JsonSerializable()
 
 class _DashboardTransactionModel implements DashboardTransactionModel {
   const _DashboardTransactionModel({required this.id, required this.title, required this.icon, required this.date, required this.amount, required this.isIncome, this.note, this.categoryId});
-  
+  factory _DashboardTransactionModel.fromJson(Map<String, dynamic> json) => _$DashboardTransactionModelFromJson(json);
 
 @override final  int id;
 @override final  String title;
@@ -497,14 +500,17 @@ class _DashboardTransactionModel implements DashboardTransactionModel {
 @pragma('vm:prefer-inline')
 _$DashboardTransactionModelCopyWith<_DashboardTransactionModel> get copyWith => __$DashboardTransactionModelCopyWithImpl<_DashboardTransactionModel>(this, _$identity);
 
-
+@override
+Map<String, dynamic> toJson() {
+  return _$DashboardTransactionModelToJson(this, );
+}
 
 @override
 bool operator ==(Object other) {
   return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardTransactionModel&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.date, date) || other.date == date)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.isIncome, isIncome) || other.isIncome == isIncome)&&(identical(other.note, note) || other.note == note)&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId));
 }
 
-
+@JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode => Object.hash(runtimeType,id,title,icon,date,amount,isIncome,note,categoryId);
 
@@ -549,6 +555,278 @@ as double,isIncome: null == isIncome ? _self.isIncome : isIncome // ignore: cast
 as bool,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,categoryId: freezed == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
 as int?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$DashboardCategoryBreakdownModel {
+
+@JsonKey(name: 'category_id') int get categoryId; String get name; double get total; double get percent;
+/// Create a copy of DashboardCategoryBreakdownModel
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DashboardCategoryBreakdownModelCopyWith<DashboardCategoryBreakdownModel> get copyWith => _$DashboardCategoryBreakdownModelCopyWithImpl<DashboardCategoryBreakdownModel>(this as DashboardCategoryBreakdownModel, _$identity);
+
+  /// Serializes this DashboardCategoryBreakdownModel to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DashboardCategoryBreakdownModel&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.name, name) || other.name == name)&&(identical(other.total, total) || other.total == total)&&(identical(other.percent, percent) || other.percent == percent));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,categoryId,name,total,percent);
+
+@override
+String toString() {
+  return 'DashboardCategoryBreakdownModel(categoryId: $categoryId, name: $name, total: $total, percent: $percent)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DashboardCategoryBreakdownModelCopyWith<$Res>  {
+  factory $DashboardCategoryBreakdownModelCopyWith(DashboardCategoryBreakdownModel value, $Res Function(DashboardCategoryBreakdownModel) _then) = _$DashboardCategoryBreakdownModelCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: 'category_id') int categoryId, String name, double total, double percent
+});
+
+
+
+
+}
+/// @nodoc
+class _$DashboardCategoryBreakdownModelCopyWithImpl<$Res>
+    implements $DashboardCategoryBreakdownModelCopyWith<$Res> {
+  _$DashboardCategoryBreakdownModelCopyWithImpl(this._self, this._then);
+
+  final DashboardCategoryBreakdownModel _self;
+  final $Res Function(DashboardCategoryBreakdownModel) _then;
+
+/// Create a copy of DashboardCategoryBreakdownModel
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? categoryId = null,Object? name = null,Object? total = null,Object? percent = null,}) {
+  return _then(_self.copyWith(
+categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
+as double,percent: null == percent ? _self.percent : percent // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [DashboardCategoryBreakdownModel].
+extension DashboardCategoryBreakdownModelPatterns on DashboardCategoryBreakdownModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DashboardCategoryBreakdownModel value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _DashboardCategoryBreakdownModel() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DashboardCategoryBreakdownModel value)  $default,){
+final _that = this;
+switch (_that) {
+case _DashboardCategoryBreakdownModel():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DashboardCategoryBreakdownModel value)?  $default,){
+final _that = this;
+switch (_that) {
+case _DashboardCategoryBreakdownModel() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'category_id')  int categoryId,  String name,  double total,  double percent)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _DashboardCategoryBreakdownModel() when $default != null:
+return $default(_that.categoryId,_that.name,_that.total,_that.percent);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'category_id')  int categoryId,  String name,  double total,  double percent)  $default,) {final _that = this;
+switch (_that) {
+case _DashboardCategoryBreakdownModel():
+return $default(_that.categoryId,_that.name,_that.total,_that.percent);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'category_id')  int categoryId,  String name,  double total,  double percent)?  $default,) {final _that = this;
+switch (_that) {
+case _DashboardCategoryBreakdownModel() when $default != null:
+return $default(_that.categoryId,_that.name,_that.total,_that.percent);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _DashboardCategoryBreakdownModel implements DashboardCategoryBreakdownModel {
+  const _DashboardCategoryBreakdownModel({@JsonKey(name: 'category_id') required this.categoryId, required this.name, required this.total, required this.percent});
+  factory _DashboardCategoryBreakdownModel.fromJson(Map<String, dynamic> json) => _$DashboardCategoryBreakdownModelFromJson(json);
+
+@override@JsonKey(name: 'category_id') final  int categoryId;
+@override final  String name;
+@override final  double total;
+@override final  double percent;
+
+/// Create a copy of DashboardCategoryBreakdownModel
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DashboardCategoryBreakdownModelCopyWith<_DashboardCategoryBreakdownModel> get copyWith => __$DashboardCategoryBreakdownModelCopyWithImpl<_DashboardCategoryBreakdownModel>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$DashboardCategoryBreakdownModelToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DashboardCategoryBreakdownModel&&(identical(other.categoryId, categoryId) || other.categoryId == categoryId)&&(identical(other.name, name) || other.name == name)&&(identical(other.total, total) || other.total == total)&&(identical(other.percent, percent) || other.percent == percent));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,categoryId,name,total,percent);
+
+@override
+String toString() {
+  return 'DashboardCategoryBreakdownModel(categoryId: $categoryId, name: $name, total: $total, percent: $percent)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DashboardCategoryBreakdownModelCopyWith<$Res> implements $DashboardCategoryBreakdownModelCopyWith<$Res> {
+  factory _$DashboardCategoryBreakdownModelCopyWith(_DashboardCategoryBreakdownModel value, $Res Function(_DashboardCategoryBreakdownModel) _then) = __$DashboardCategoryBreakdownModelCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: 'category_id') int categoryId, String name, double total, double percent
+});
+
+
+
+
+}
+/// @nodoc
+class __$DashboardCategoryBreakdownModelCopyWithImpl<$Res>
+    implements _$DashboardCategoryBreakdownModelCopyWith<$Res> {
+  __$DashboardCategoryBreakdownModelCopyWithImpl(this._self, this._then);
+
+  final _DashboardCategoryBreakdownModel _self;
+  final $Res Function(_DashboardCategoryBreakdownModel) _then;
+
+/// Create a copy of DashboardCategoryBreakdownModel
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? categoryId = null,Object? name = null,Object? total = null,Object? percent = null,}) {
+  return _then(_DashboardCategoryBreakdownModel(
+categoryId: null == categoryId ? _self.categoryId : categoryId // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
+as double,percent: null == percent ? _self.percent : percent // ignore: cast_nullable_to_non_nullable
+as double,
   ));
 }
 

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/error/exceptions.dart';
 import 'package:finance_tracker_app/core/network/session_local_data_source.dart';
+import 'package:finance_tracker_app/core/network/user_id_local_data_source.dart';
 import 'package:finance_tracker_app/feature/users/auth/data/models/auth_remote_data_source.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/repositories/auth_repository.dart';
@@ -9,10 +10,12 @@ import 'package:finance_tracker_app/feature/users/auth/domain/repositories/auth_
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remote;
   final SessionLocalDataSource sessionLocal;
+  final UserIdLocalDataSource userIdLocal;
 
   AuthRepositoryImpl({
     required this.remote,
     required this.sessionLocal,
+    required this.userIdLocal,
   });
 
   @override
@@ -43,7 +46,14 @@ class AuthRepositoryImpl implements AuthRepository {
 
     await sessionLocal.saveAccessToken(token);
 
-    return _fetchMe(cancelToken: cancelToken);
+    final user = await _fetchMe(cancelToken: cancelToken);
+
+    // ✅ Save user id for other features (Dashboard uses this)
+    if (user.id.isNotEmpty) {
+      await userIdLocal.saveUserId(user.id);
+    }
+
+    return user;
   }
 
   @override
@@ -61,11 +71,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
       await sessionLocal.saveAccessToken(token);
 
-      return _fetchMe(cancelToken: cancelToken);
+      final user = await _fetchMe(cancelToken: cancelToken);
+
+      // ✅ Save user id for Dashboard/RPC calls
+      if (user.id.isNotEmpty) {
+        await userIdLocal.saveUserId(user.id);
+      }
+
+      return user;
     } on AppException {
       rethrow;
     } on DioException catch (e) {
-      // If request was cancelled -> bubble up so Cubit can ignore it
       if (CancelToken.isCancel(e)) rethrow;
       throw const AuthException(AppStrings.loginFailed);
     } catch (_) {
@@ -86,8 +102,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout({CancelToken? cancelToken}) async {
-    // If you also call remote logout endpoint in the future,
-    // pass cancelToken there. For now it's local only.
     await sessionLocal.clear();
+    await userIdLocal.clear(); // ✅ clear user id too
   }
 }

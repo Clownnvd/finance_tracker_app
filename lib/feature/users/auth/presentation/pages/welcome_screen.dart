@@ -45,7 +45,7 @@ class WelcomeScreen extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xl),
                 SizedBox(
                   width: double.infinity,
-                  height: AppSpacing.xxl,
+                  height: AppSpacing.xxl * 1.3,
                   child: ElevatedButton(
                     onPressed: () => Navigator.pushNamed(
                       context,
@@ -54,6 +54,7 @@ class WelcomeScreen extends StatelessWidget {
                     child: Text(
                       AppStrings.getStarted,
                       style: ts.titleMedium,
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),

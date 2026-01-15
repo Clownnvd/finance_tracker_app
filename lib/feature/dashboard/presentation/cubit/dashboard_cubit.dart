@@ -1,23 +1,13 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:finance_tracker_app/feature/dashboard/domain/entities/dashboard_entities.dart';
-import 'package:finance_tracker_app/feature/dashboard/domain/usecases/get_category_breakdown.dart';
-import 'package:finance_tracker_app/feature/dashboard/domain/usecases/get_dashboard_summary.dart';
-import 'package:finance_tracker_app/feature/dashboard/domain/usecases/get_recent_transactions.dart';
-
+import 'package:finance_tracker_app/feature/dashboard/domain/usecases/get_dashboard_data.dart';
 import 'dashboard_state.dart';
 
 class DashboardCubit extends Cubit<DashboardState> {
-  final GetDashboardSummary _getDashboardSummary;
-  final GetCategoryBreakdown _getCategoryBreakdown;
-  final GetRecentTransactions _getRecentTransactions;
+  final GetDashboardData _getDashboardData;
 
   DashboardCubit({
-    required GetDashboardSummary getDashboardSummary,
-    required GetCategoryBreakdown getCategoryBreakdown,
-    required GetRecentTransactions getRecentTransactions,
-  })  : _getDashboardSummary = getDashboardSummary,
-        _getCategoryBreakdown = getCategoryBreakdown,
-        _getRecentTransactions = getRecentTransactions,
+    required GetDashboardData getDashboardData,
+  })  : _getDashboardData = getDashboardData,
         super(DashboardState.initial());
 
   DateTime _normalizeMonth(DateTime d) => DateTime(d.year, d.month, 1);
@@ -33,27 +23,12 @@ class DashboardCubit extends Cubit<DashboardState> {
     emit(state.copyWith(isLoading: true, month: m, clearError: true));
 
     try {
-      final summary = await _getDashboardSummary(month: m);
-
-      final expenseBreakdown = await _getCategoryBreakdown(
-        month: m,
-        type: DashboardType.expense,
-      );
-
-      final incomeBreakdown = await _getCategoryBreakdown(
-        month: m,
-        type: DashboardType.income,
-      );
-
-      final recent = await _getRecentTransactions(limit: recentLimit);
+      final data = await _getDashboardData(month: m, recentLimit: recentLimit);
 
       emit(state.copyWith(
         isLoading: false,
         clearError: true,
-        summary: summary,
-        expenseBreakdown: expenseBreakdown,
-        incomeBreakdown: incomeBreakdown,
-        recent: recent,
+        data: data,
       ));
     } catch (e) {
       emit(state.copyWith(

@@ -44,3 +44,33 @@ class DashboardTransaction {
     this.categoryId,
   });
 }
+
+class DashboardCategoryBreakdownItem {
+  final int categoryId;
+  final String name;
+  final double total;
+  final double percent;
+
+  const DashboardCategoryBreakdownItem({
+    required this.categoryId,
+    required this.name,
+    required this.total,
+    required this.percent,
+  });
+}
+
+class DashboardData {
+  final DateTime month;
+  final DashboardSummary summary;
+  final List<DashboardCategoryBreakdownItem> expenseBreakdown;
+  final List<DashboardCategoryBreakdownItem> incomeBreakdown;
+  final List<DashboardTransaction> recent;
+
+  const DashboardData({
+    required this.month,
+    required this.summary,
+    required this.expenseBreakdown,
+    required this.incomeBreakdown,
+    required this.recent,
+  });
+}

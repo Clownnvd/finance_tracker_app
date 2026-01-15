@@ -15,43 +15,40 @@ class DashboardRepositoryImpl implements DashboardRepository {
         _userIdLocal = userIdLocal;
 
   @override
-  Future<DashboardSummary> getSummaryForMonth(DateTime month) async {
-    final model = await _remote.fetchSummaryForMonth(month);
-    return model.toEntity();
-  }
-
-  @override
-  Future<List<DashboardTransaction>> getRecentTransactions({int limit = 20}) async {
-    final models = await _remote.fetchRecentTransactions(limit: limit);
-    return models.map((m) => m.toEntity()).toList();
-  }
-
-  @override
-  Future<List<DashboardTransaction>> getRecentTransactionsForMonth({
+  Future<DashboardData> getDashboardData({
     required DateTime month,
-    int limit = 20,
-  }) async {
-    final models = await _remote.fetchRecentTransactionsForMonth(
-      month: month,
-      limit: limit,
-    );
-    return models.map((m) => m.toEntity()).toList();
-  }
-
-  @override
-  Future<List<Map<String, dynamic>>> getCategoryBreakdownForMonth({
-    required DateTime month,
-    required String type,
+    int recentLimit = 3,
   }) async {
     final uid = await _userIdLocal.getUserId();
     if (uid == null || uid.isEmpty) {
       throw Exception('Missing user_id');
     }
 
-    return _remote.fetchCategoryBreakdownForMonth(
+    final summaryModel = await _remote.fetchSummaryForMonth(month);
+
+    final expenseModels = await _remote.fetchCategoryBreakdownForMonth(
       uid: uid,
       month: month,
-      type: type,
+      type: DashboardType.expense.apiValue,
+    );
+
+    final incomeModels = await _remote.fetchCategoryBreakdownForMonth(
+      uid: uid,
+      month: month,
+      type: DashboardType.income.apiValue,
+    );
+
+    final recentModels = await _remote.fetchRecentTransactionsForMonth(
+      month: month,
+      limit: recentLimit,
+    );
+
+    return DashboardData(
+      month: DateTime(month.year, month.month, 1),
+      summary: summaryModel.toEntity(),
+      expenseBreakdown: expenseModels.map((e) => e.toEntity()).toList(),
+      incomeBreakdown: incomeModels.map((e) => e.toEntity()).toList(),
+      recent: recentModels.map((t) => t.toEntity()).toList(),
     );
   }
 }

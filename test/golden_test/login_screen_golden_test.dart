@@ -1,4 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,9 +9,7 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/theme/app_theme.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/pages/login_screen.dart';
+
 
 class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 

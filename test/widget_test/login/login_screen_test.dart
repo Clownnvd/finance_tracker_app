@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/login_screen.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,10 +15,8 @@ import 'package:finance_tracker_app/core/theme/app_theme.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/login.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/sign_up.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/pages/dashboard_screen.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/pages/login_screen.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/pages/sign_up_screen.dart';
+import 'package:finance_tracker_app/feature/dashboard/presentation/pages/dashboard_screen.dart';
+
 
 class MockLogin extends Mock implements Login {}
 

@@ -105,8 +105,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }) {
     return _guard(() async {
       final res = await dio.post(
-        SupabaseEndpoints.authToken,
-        queryParameters: const {'grant_type': 'password'},
+        SupabaseEndpoints.authTokenPassword,
         data: {'email': email, 'password': password},
         cancelToken: cancelToken,
       );

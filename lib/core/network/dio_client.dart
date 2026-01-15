@@ -12,10 +12,14 @@ typedef TokenProvider = Future<String?> Function();
 ///
 /// Responsibilities:
 /// - Configure base URL and default headers
-/// - Automatically attach authentication headers
+/// - Always include Supabase `apikey` header
+/// - Attach `Authorization: Bearer <access_token>` only when token exists
 /// - Apply global timeouts
 ///
-/// This client is designed to work with Supabase APIs.
+/// Notes for Supabase:
+/// - `apikey` is required on every request (anon key)
+/// - `Authorization` should be the user JWT (access token) when logged in
+/// - Do NOT use `Bearer <anonKey>` as a fallback, because anon key is not a JWT
 class DioClient {
   /// The underlying Dio instance used for HTTP requests.
   final Dio dio;
@@ -23,11 +27,8 @@ class DioClient {
   /// Creates a configured [DioClient].
   ///
   /// [baseUrl] - Supabase project base URL
-  /// [anonKey] - Supabase anonymous public API key
+  /// [anonKey] - Supabase anonymous public API key (used for `apikey` header)
   /// [tokenProvider] - Async function that returns the current access token
-  ///
-  /// If [tokenProvider] returns `null`, the client falls back to using
-  /// the anonymous key for unauthenticated requests.
   DioClient({
     required String baseUrl,
     required String anonKey,
@@ -58,7 +59,7 @@ class DioClient {
             },
           ),
         ) {
-    // Ensure apikey is always present (Supabase requirement).
+    // Supabase requires `apikey` for both public and authenticated requests.
     dio.options.headers['apikey'] = anonKey;
 
     /// Interceptor responsible for injecting authentication headers
@@ -68,10 +69,17 @@ class DioClient {
         /// Attaches `Authorization` header before the request is sent.
         ///
         /// - Uses `Bearer <access_token>` when available
-        /// - Falls back to `Bearer <anonKey>` for public endpoints
+        /// - Removes `Authorization` when token is missing (public requests)
         onRequest: (options, handler) async {
           final token = await tokenProvider();
-          options.headers['Authorization'] = 'Bearer ${token ?? anonKey}';
+          final hasToken = token != null && token.trim().isNotEmpty;
+
+          if (hasToken) {
+            options.headers['Authorization'] = 'Bearer ${token!.trim()}';
+          } else {
+            options.headers.remove('Authorization');
+          }
+
           handler.next(options);
         },
 

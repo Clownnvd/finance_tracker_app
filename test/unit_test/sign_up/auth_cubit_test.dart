@@ -1,3 +1,5 @@
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -5,8 +7,7 @@ import 'package:finance_tracker_app/core/error/exceptions.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/login.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/sign_up.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
+
 
 class MockLogin extends Mock implements Login {}
 

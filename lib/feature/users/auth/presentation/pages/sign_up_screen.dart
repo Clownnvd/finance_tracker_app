@@ -122,7 +122,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           textInputAction: TextInputAction.next,
                         ),
 
-                        const SizedBox(height: AppSpacing.md),
+                        const SizedBox(height: AppSpacing.xs),
 
                         /// Email — unified validation
                         AppValidatedTextField(
@@ -134,7 +134,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           textInputAction: TextInputAction.next,
                         ),
 
-                        const SizedBox(height: AppSpacing.md),
+                        const SizedBox(height: AppSpacing.xs),
 
                         /// Password — unified validation
                         AppValidatedTextField(
@@ -160,7 +160,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
 
-                        const SizedBox(height: AppSpacing.md),
+                        const SizedBox(height: AppSpacing.xs),
 
                         /// Confirm password — unified validation
                         AppValidatedTextField(
@@ -193,7 +193,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         const SizedBox(height: AppSpacing.lg),
 
                         SizedBox(
-                          height: AppSpacing.xxl,
+                          height: AppSpacing.xxl * 1.35,
                           child: ElevatedButton(
                             onPressed:
                                 isLoading ? null : () => _onSignUpPressed(isLoading),

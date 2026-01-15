@@ -113,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           textInputAction: TextInputAction.next,
                         ),
 
-                        const SizedBox(height: AppSpacing.md),
+                        const SizedBox(height: AppSpacing.xs),
 
                         /// Password — unified validation
                         AppValidatedTextField(
@@ -143,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: AppSpacing.lg),
 
                         SizedBox(
-                          height: AppSpacing.xxl,
+                          height: AppSpacing.xxl * 1.35,
                           child: ElevatedButton(
                             onPressed:
                                 isLoading ? null : () => _onLoginPressed(isLoading),

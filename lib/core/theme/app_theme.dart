@@ -58,7 +58,7 @@ class AppTextStyles {
 
   static TextStyle get title => const TextStyle(
         fontFamily: _font,
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: FontWeight.w600,
         height: 1.3,
         color: AppColors.neutral900,
@@ -82,7 +82,7 @@ class AppTextStyles {
 
   static TextStyle get caption => const TextStyle(
         fontFamily: _font,
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: FontWeight.w400,
         height: 1.3,
         color: AppColors.neutral600,

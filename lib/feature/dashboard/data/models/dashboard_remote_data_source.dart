@@ -1,3 +1,5 @@
+// lib/feature/dashboard/data/models/dashboard_remote_data_source.dart
+
 import 'package:dio/dio.dart';
 import 'package:finance_tracker_app/core/network/dio_client.dart';
 import 'package:finance_tracker_app/core/network/supabase_endpoints.dart';
@@ -24,7 +26,7 @@ class DashboardRemoteDataSource {
     final start = _monthStart(month);
 
     final res = await _dio.get(
-      SupabaseEndpoints.table('v_month_totals'),
+      SupabaseEndpoints.vMonthTotals, // ✅ dùng constant (không table('...') nữa)
       queryParameters: {
         'select': 'type,month,total',
         'month': 'eq.${_dateOnly(start)}',
@@ -32,22 +34,6 @@ class DashboardRemoteDataSource {
     );
 
     return DashboardSummaryModel.fromMonthTotals(res.data as List<dynamic>);
-  }
-
-  Future<List<DashboardTransactionModel>> fetchRecentTransactions({
-    int limit = 20,
-  }) async {
-    final res = await _dio.get(
-      SupabaseEndpoints.table('transactions'),
-      queryParameters: {
-        'select': 'id,type,amount,note,date,category_id,categories(name,icon)',
-        'order': 'date.desc',
-        'limit': limit,
-      },
-    );
-
-    final list = (res.data as List).cast<Map<String, dynamic>>();
-    return list.map(DashboardTransactionModel.fromJson).toList();
   }
 
   Future<List<DashboardTransactionModel>> fetchRecentTransactionsForMonth({
@@ -58,21 +44,23 @@ class DashboardRemoteDataSource {
     final end = _monthEnd(month);
 
     final res = await _dio.get(
-      SupabaseEndpoints.table('transactions'),
+      SupabaseEndpoints.transactions,
       queryParameters: {
         'select': 'id,type,amount,note,date,category_id,categories(name,icon)',
         'date': 'gte.${_dateOnly(start)}',
-        'date': 'lte.${_dateOnly(end)}',
+        'and': '(date.lte.${_dateOnly(end)})',
         'order': 'date.desc',
         'limit': limit,
       },
     );
 
     final list = (res.data as List).cast<Map<String, dynamic>>();
-    return list.map(DashboardTransactionModel.fromJson).toList();
+
+    // ✅ MUST: fromApi (parse categories(name,icon))
+    return list.map(DashboardTransactionModel.fromApi).toList();
   }
 
-  Future<List<Map<String, dynamic>>> fetchCategoryBreakdownForMonth({
+  Future<List<DashboardCategoryBreakdownModel>> fetchCategoryBreakdownForMonth({
     required String uid,
     required DateTime month,
     required String type,
@@ -81,7 +69,7 @@ class DashboardRemoteDataSource {
     final end = _monthEnd(month);
 
     final res = await _dio.post(
-      '${SupabaseEndpoints.rest}/rpc/category_totals',
+      SupabaseEndpoints.rpcCategoryTotals, // ✅ dùng constant
       data: {
         'uid': uid,
         'start_date': _dateOnly(start),
@@ -90,6 +78,9 @@ class DashboardRemoteDataSource {
       },
     );
 
-    return (res.data as List).cast<Map<String, dynamic>>();
+    final list = (res.data as List).cast<Map<String, dynamic>>();
+
+    // ✅ RPC trả đúng shape category_id, name, total, percent
+    return list.map(DashboardCategoryBreakdownModel.fromApi).toList();
   }
 }
