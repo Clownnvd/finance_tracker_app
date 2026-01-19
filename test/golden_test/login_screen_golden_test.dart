@@ -10,7 +10,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/theme/app_theme.dart';
 
-
 class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 Widget _buildGoldenApp(AuthCubit cubit) {
@@ -34,16 +33,18 @@ void main() {
   group('LoginScreen golden', () {
     testWidgets('initial state', (tester) async {
       final cubit = MockAuthCubit();
+      const state = AuthInitial();
 
-      when(() => cubit.state).thenReturn(const AuthInitial());
+      when(() => cubit.state).thenReturn(state);
       whenListen<AuthState>(
         cubit,
         const Stream<AuthState>.empty(),
-        initialState: const AuthInitial(),
+        initialState: state,
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+      await tester.pump(); // build first frame
+      await tester.pump(const Duration(milliseconds: 300));
 
       await expectLater(
         find.byType(LoginScreen),
@@ -53,25 +54,30 @@ void main() {
 
     testWidgets('validation errors', (tester) async {
       final cubit = MockAuthCubit();
+      const state = AuthInitial();
 
-      when(() => cubit.state).thenReturn(const AuthInitial());
+      when(() => cubit.state).thenReturn(state);
       whenListen<AuthState>(
         cubit,
         const Stream<AuthState>.empty(),
-        initialState: const AuthInitial(),
+        initialState: state,
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
-      final buttonFinder = find.widgetWithText(ElevatedButton, AppStrings.login);
-      await tester.ensureVisible(buttonFinder);
-      await tester.tap(buttonFinder);
-      await tester.pumpAndSettle();
+      // Tap login button without input to trigger validation
+      final loginButton =
+          find.widgetWithText(ElevatedButton, AppStrings.login);
+      await tester.tap(loginButton);
+      await tester.pump(const Duration(milliseconds: 300));
 
       await expectLater(
         find.byType(LoginScreen),
-        matchesGoldenFile('goldens/login_screen_validation_errors.png'),
+        matchesGoldenFile(
+          'goldens/login_screen_validation_errors.png',
+        ),
       );
     });
 
@@ -88,7 +94,11 @@ void main() {
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+
+      // ❗ DO NOT use pumpAndSettle() here
+      // Loading overlay contains infinite animation
+      await tester.pump(); // first frame
+      await tester.pump(const Duration(milliseconds: 300));
 
       await expectLater(
         find.byType(LoginScreen),
@@ -96,20 +106,25 @@ void main() {
       );
     });
 
-    testWidgets('error state', (tester) async {
+    testWidgets('error state (SnackBar visible)', (tester) async {
       final cubit = MockAuthCubit();
 
-      const failure = AuthFailure(AppStrings.genericError);
+      const error = AuthFailure(AppStrings.genericError);
 
-      when(() => cubit.state).thenReturn(failure);
+      when(() => cubit.state).thenReturn(error);
       whenListen<AuthState>(
         cubit,
-        Stream<AuthState>.fromIterable([failure]),
-        initialState: failure,
+        Stream<AuthState>.fromIterable([error]),
+        initialState: error,
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+
+      // First frame
+      await tester.pump();
+
+      // Allow SnackBar animation to appear
+      await tester.pump(const Duration(milliseconds: 300));
 
       await expectLater(
         find.byType(LoginScreen),

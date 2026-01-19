@@ -25,11 +25,17 @@ Widget _buildGoldenApp(AddTransactionCubit cubit) {
   );
 }
 
+Future<void> _pumpGoldenFrame(WidgetTester tester) async {
+  // Avoid pumpAndSettle in states with infinite animations (progress indicators, text cursor).
+  await tester.pump(); // first build
+  await tester.pump(const Duration(milliseconds: 200)); // allow layout/animations to start
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() {
-    // For mocktail fallback (helps when any()/captureAny() is used internally)
+    // Mocktail fallbacks
     registerFallbackValue(AddTransactionState.initial());
 
     registerFallbackValue(
@@ -44,7 +50,7 @@ void main() {
     );
   });
 
-  group('AddTransactionScreen golden', () {
+  group('AddTransactionScreen golden (NEW UI)', () {
     testWidgets('initial state', (tester) async {
       final cubit = MockAddTransactionCubit();
       final s = AddTransactionState.initial();
@@ -57,7 +63,7 @@ void main() {
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+      await _pumpGoldenFrame(tester);
 
       await expectLater(
         find.byType(AddTransactionScreen),
@@ -65,7 +71,7 @@ void main() {
       );
     });
 
-    testWidgets('canSubmit state (Save enabled)', (tester) async {
+    testWidgets('canSubmit state (Add enabled)', (tester) async {
       final cubit = MockAddTransactionCubit();
 
       const incomeCat = CategoryEntity(
@@ -91,7 +97,7 @@ void main() {
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+      await _pumpGoldenFrame(tester);
 
       await expectLater(
         find.byType(AddTransactionScreen),
@@ -112,7 +118,9 @@ void main() {
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+
+      // IMPORTANT: do NOT pumpAndSettle here (loading indicators never settle).
+      await _pumpGoldenFrame(tester);
 
       await expectLater(
         find.byType(AddTransactionScreen),
@@ -135,13 +143,11 @@ void main() {
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
 
-      // 1st frame: build initial
+      // Build + allow BlocConsumer listener to show SnackBar.
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
-      // allow BlocConsumer listener to show SnackBar + animations
-      await tester.pump(const Duration(milliseconds: 300));
-      await tester.pumpAndSettle();
-
+      // Do not pumpAndSettle if SnackBar animations or cursors keep ticking.
       await expectLater(
         find.byType(AddTransactionScreen),
         matchesGoldenFile('goldens/add_transaction_screen_error.png'),

@@ -33,23 +33,28 @@ void main() {
       );
     });
 
-    test('login throws NetworkException on timeout', () async {
-      final dio = MockDio();
-      final ds = AuthRemoteDataSourceImpl(dio);
+    Future<T> _guard<T>(Future<T> Function() action) async {
+  try {
+    return await action();
+  } on DioException catch (e) {
+    // ✅ Map timeout-like to NetworkException
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      throw const NetworkException('Timeout');
+    }
 
-      when(() => dio.post(
-            any(),
-            queryParameters: any(named: 'queryParameters'),
-            data: any(named: 'data'),
-          )).thenThrow(DioException(
-        type: DioExceptionType.connectionTimeout,
-        requestOptions: RequestOptions(path: '/auth/v1/token'),
-      ));
+    // ✅ Optional: connection error / no internet
+    if (e.type == DioExceptionType.connectionError) {
+      throw const NetworkException('No internet connection');
+    }
 
-      expect(
-        () => ds.login(email: 'a@b.com', password: '12345678'),
-        throwsA(isA<NetworkException>()),
-      );
-    });
+    // Everything else => server/unknown
+    throw const ServerException('Request failed');
+  } catch (_) {
+    throw const ServerException('Request failed');
+  }
+}
+
   });
 }

@@ -1,30 +1,93 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
-import 'package:finance_tracker_app/feature/transactions/presentation/select_category/pages/select_category_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/feature/transactions/domain/entities/category_entity.dart';
 import 'package:finance_tracker_app/feature/transactions/presentation/select_category/cubit/select_category_cubit.dart';
 import 'package:finance_tracker_app/feature/transactions/presentation/select_category/cubit/select_category_state.dart';
+import 'package:finance_tracker_app/feature/transactions/presentation/select_category/pages/select_category_screen.dart';
 
 class MockSelectCategoryCubit extends MockCubit<SelectCategoryState>
     implements SelectCategoryCubit {}
 
-class MockNavigatorObserver extends Mock implements NavigatorObserver {}
+class _FakeRoute extends Fake implements Route<dynamic> {}
+
+Future<void> _stablePump(WidgetTester tester) async {
+  // Flush microtasks + async scheduling safely.
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 50));
+  await tester.pump(const Duration(milliseconds: 50));
+  await tester.pump(const Duration(milliseconds: 50));
+}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late MockSelectCategoryCubit cubit;
-  late MockNavigatorObserver navObserver;
 
-  const expense1 = CategoryEntity(id: 1, name: 'Food', type: TransactionType.expense, icon: 'food');
-  const income1 = CategoryEntity(id: 10, name: 'Salary', type: TransactionType.income, icon: 'salary');
+  const expense1 = CategoryEntity(
+    id: 1,
+    name: 'Food',
+    type: TransactionType.expense,
+    icon: 'food',
+  );
 
-  Widget buildApp(SelectCategoryCubit cubit) {
+  const income1 = CategoryEntity(
+    id: 10,
+    name: 'Salary',
+    type: TransactionType.income,
+    icon: 'salary',
+  );
+
+  setUpAll(() {
+    // Navigator fallback (when verify/capture routes).
+    registerFallbackValue(_FakeRoute());
+
+    // State fallback (for MockCubit internals).
+    registerFallbackValue(SelectCategoryState.initial());
+
+    // IMPORTANT:
+    // Mocktail needs a fallback value when you use any()/captureAny()
+    // for a parameter of type CategoryEntity (e.g. cubit.select(any())).
+    registerFallbackValue(const CategoryEntity(
+      id: 999,
+      name: 'fallback',
+      type: TransactionType.expense,
+      icon: 'fallback',
+    ));
+  });
+
+  setUp(() {
+    cubit = MockSelectCategoryCubit();
+
+    // Screen calls these, so always stub them to avoid:
+    // "Null is not a subtype of Future<void>"
+    when(() => cubit.load()).thenAnswer((_) async {});
+    when(() => cubit.load(force: any(named: 'force'))).thenAnswer((_) async {});
+
+    // select() returns void, so just stub it.
+    when(() => cubit.select(any())).thenReturn(null);
+  });
+
+  Widget _buildApp({
+    required SelectCategoryState state,
+    Stream<SelectCategoryState>? stream,
+  }) {
+    when(() => cubit.state).thenReturn(state);
+    whenListen<SelectCategoryState>(
+      cubit,
+      stream ?? const Stream<SelectCategoryState>.empty(),
+      initialState: state,
+    );
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      navigatorObservers: [navObserver],
+      scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>(),
       home: BlocProvider<SelectCategoryCubit>.value(
         value: cubit,
         child: const SelectCategoryScreen(),
@@ -32,67 +95,87 @@ void main() {
     );
   }
 
-  setUp(() {
-    cubit = MockSelectCategoryCubit();
-    navObserver = MockNavigatorObserver();
-  });
+  testWidgets(
+    'initState schedules cubit.load() via microtask',
+    (tester) async {
+      final s = SelectCategoryState.initial();
 
-  testWidgets('calls cubit.load() on initState (microtask)', (tester) async {
-    when(() => cubit.state).thenReturn(SelectCategoryState.initial());
-    whenListen(
-      cubit,
-      const Stream<SelectCategoryState>.empty(),
-      initialState: SelectCategoryState.initial(),
-    );
+      await tester.pumpWidget(_buildApp(state: s));
 
-    when(() => cubit.load()).thenAnswer((_) async {});
+      // Microtask runs on the next pump.
+      await tester.pump();
 
-    await tester.pumpWidget(buildApp(cubit));
+      verify(() => cubit.load()).called(1);
+    },
+  );
 
-    // Let microtask run
-    await tester.pump();
+  testWidgets(
+    'shows CircularProgressIndicator when loading and lists are empty',
+    (tester) async {
+      final s = SelectCategoryState.initial().copyWith(isLoading: true);
 
-    verify(() => cubit.load()).called(1);
-  });
+      await tester.pumpWidget(
+        _buildApp(
+          state: s,
+          stream: Stream<SelectCategoryState>.fromIterable([s]),
+        ),
+      );
+      await _stablePump(tester);
 
-  testWidgets('shows CircularProgressIndicator when loading and lists empty', (tester) async {
-    final s = SelectCategoryState.initial().copyWith(isLoading: true);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    },
+  );
 
-    when(() => cubit.state).thenReturn(s);
-    whenListen(
-      cubit,
-      Stream<SelectCategoryState>.fromIterable([s]),
-      initialState: s,
-    );
+  testWidgets(
+    'renders title + sections when loaded',
+    (tester) async {
+      final loaded = SelectCategoryState.initial().copyWith(
+        isLoading: false,
+        expense: const [expense1],
+        income: const [income1],
+        clearError: true,
+      );
 
-    await tester.pumpWidget(buildApp(cubit));
-    await tester.pump();
+      await tester.pumpWidget(
+        _buildApp(
+          state: loaded,
+          stream: Stream<SelectCategoryState>.fromIterable([loaded]),
+        ),
+      );
+      await _stablePump(tester);
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-  });
+      expect(find.text(AppStrings.selectCategoryTitle), findsOneWidget);
+      expect(find.text(AppStrings.expenseUpper), findsOneWidget);
+      expect(find.text(AppStrings.incomeUpper), findsOneWidget);
 
-  testWidgets('renders sections and pops with CategoryEntity when tapping item', (tester) async {
-    final loaded = SelectCategoryState.initial(selectedCategoryId: null).copyWith(
-      isLoading: false,
-      expense: const [expense1],
-      income: const [income1],
-      clearError: true,
-    );
+      expect(find.text('Food'), findsOneWidget);
+      expect(find.text('Salary'), findsOneWidget);
+    },
+  );
 
-    when(() => cubit.state).thenReturn(loaded);
-    whenListen(
-      cubit,
-      Stream<SelectCategoryState>.fromIterable([loaded]),
-      initialState: loaded,
-    );
+  testWidgets(
+    'tapping an item pops and returns CategoryEntity',
+    (tester) async {
+      final loaded = SelectCategoryState.initial(selectedCategoryId: null).copyWith(
+        isLoading: false,
+        expense: const [expense1],
+        income: const [income1],
+        clearError: true,
+      );
 
-    // We want a route to pop from.
-    final result = await tester.runAsync(() async {
+      when(() => cubit.state).thenReturn(loaded);
+      whenListen<SelectCategoryState>(
+        cubit,
+        Stream<SelectCategoryState>.fromIterable([loaded]),
+        initialState: loaded,
+      );
+
       CategoryEntity? popped;
 
       await tester.pumpWidget(
         MaterialApp(
-          navigatorObservers: [navObserver],
+          debugShowCheckedModeBanner: false,
+          scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>(),
           home: Builder(
             builder: (context) => Scaffold(
               body: Center(
@@ -119,64 +202,60 @@ void main() {
       await tester.tap(find.text('open'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Select category'), findsOneWidget);
-
-      // Tap category item by its name
+      // Tap by label (should be visible in the list).
       await tester.tap(find.text('Food'));
       await tester.pumpAndSettle();
 
       expect(popped, isNotNull);
-      expect(popped!.id, expense1.id);
+      expect(popped!.id, equals(expense1.id));
 
-      return popped;
-    });
+      // Verify select called with a CategoryEntity.
+      // We avoid verifying exact instance identity to keep it robust.
+      verify(() => cubit.select(any())).called(1);
+    },
+  );
 
-    expect(result, isA<CategoryEntity>());
-  });
+  testWidgets(
+    'refresh calls cubit.load(force: true) (stable: call RefreshIndicator.onRefresh directly)',
+    (tester) async {
+      final loaded = SelectCategoryState.initial().copyWith(
+        isLoading: false,
+        expense: const [expense1],
+        income: const [income1],
+        clearError: true,
+      );
 
-  testWidgets('pull-to-refresh calls load(force:true)', (tester) async {
-    final loaded = SelectCategoryState.initial().copyWith(
-      isLoading: false,
-      expense: const [expense1],
-      income: const [income1],
-      clearError: true,
-    );
+      await tester.pumpWidget(_buildApp(state: loaded));
+      await _stablePump(tester);
 
-    when(() => cubit.state).thenReturn(loaded);
-    whenListen(
-      cubit,
-      const Stream<SelectCategoryState>.empty(),
-      initialState: loaded,
-    );
+      final riFinder = find.byType(RefreshIndicator);
+      expect(riFinder, findsOneWidget);
 
-    when(() => cubit.load(force: true)).thenAnswer((_) async {});
+      final ri = tester.widget<RefreshIndicator>(riFinder);
+      await ri.onRefresh();
+      await tester.pump();
 
-    await tester.pumpWidget(buildApp(cubit));
-    await tester.pumpAndSettle();
+      verify(() => cubit.load(force: true)).called(1);
+    },
+  );
 
-    // Trigger RefreshIndicator (drag down enough)
-    await tester.drag(find.byType(ListView), const Offset(0, 500));
-    await tester.pump(); // start refresh
-    await tester.pump(const Duration(seconds: 1));
+  testWidgets(
+    'shows SnackBar when error becomes non-empty',
+    (tester) async {
+      final s0 = SelectCategoryState.initial();
+      final s1 = s0.copyWith(error: 'Oops');
 
-    verify(() => cubit.load(force: true)).called(1);
-  });
+      await tester.pumpWidget(
+        _buildApp(
+          state: s0,
+          stream: Stream<SelectCategoryState>.fromIterable([s1]),
+        ),
+      );
 
-  testWidgets('shows SnackBar when error appears', (tester) async {
-    final s0 = SelectCategoryState.initial();
-    final s1 = s0.copyWith(error: 'Oops');
+      await _stablePump(tester);
 
-    when(() => cubit.state).thenReturn(s1);
-    whenListen(
-      cubit,
-      Stream<SelectCategoryState>.fromIterable([s1]),
-      initialState: s0,
-    );
-
-    await tester.pumpWidget(buildApp(cubit));
-    await tester.pump(); // allow listener
-
-    expect(find.byType(SnackBar), findsOneWidget);
-    expect(find.text('Oops'), findsOneWidget);
-  });
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.text('Oops'), findsOneWidget);
+    },
+  );
 }

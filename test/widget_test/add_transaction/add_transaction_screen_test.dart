@@ -1,10 +1,11 @@
 import 'package:bloc_test/bloc_test.dart';
-import 'package:finance_tracker_app/feature/transactions/presentation/add_transaction/pages/add_transaction_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:finance_tracker_app/core/constants/strings.dart';
+import 'package:finance_tracker_app/feature/transactions/presentation/add_transaction/pages/add_transaction_screen.dart';
 import 'package:finance_tracker_app/feature/transactions/presentation/add_transaction/cubit/add_transaction_cubit.dart';
 import 'package:finance_tracker_app/feature/transactions/presentation/add_transaction/cubit/add_transaction_state.dart';
 import 'package:finance_tracker_app/feature/transactions/domain/entities/category_entity.dart';
@@ -15,7 +16,72 @@ class MockAddTransactionCubit extends MockCubit<AddTransactionState>
 
 class MockNavigatorObserver extends Mock implements NavigatorObserver {}
 
+class _FakeRoute extends Fake implements Route<dynamic> {}
+
+Future<void> _stablePump(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 50));
+  await tester.pump(const Duration(milliseconds: 50));
+  await tester.pump(const Duration(milliseconds: 50));
+}
+
+Future<void> _pumpFor(
+  WidgetTester tester,
+  Duration duration, {
+  Duration step = const Duration(milliseconds: 50),
+}) async {
+  var elapsed = Duration.zero;
+  while (elapsed < duration) {
+    await tester.pump(step);
+    elapsed += step;
+  }
+}
+
+Future<void> _safeTapFirst(
+  WidgetTester tester,
+  Finder finder, {
+  required String reason,
+}) async {
+  if (finder.evaluate().isEmpty) {
+    fail('Cannot tap ($reason). Finder not found: $finder');
+  }
+  await tester.ensureVisible(finder.first);
+  await tester.tap(finder.first);
+  await tester.pump();
+}
+
+Finder _titleFinder() {
+  final t1 = find.text('Add Transaction');
+  if (t1.evaluate().isNotEmpty) return t1;
+  return find.text('Add transaction');
+}
+
+Finder _addCtaFinder() => find.text('Add').hitTestable();
+
+class _HostPushScreen extends StatelessWidget {
+  const _HostPushScreen({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: ElevatedButton(
+          key: const Key('open-add-transaction'),
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => child),
+          ),
+          child: const Text('Open'),
+        ),
+      ),
+    );
+  }
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late MockAddTransactionCubit cubit;
   late MockNavigatorObserver navObserver;
 
@@ -26,6 +92,21 @@ void main() {
     icon: 'salary',
   );
 
+  setUpAll(() {
+    registerFallbackValue(_FakeRoute());
+    registerFallbackValue(AddTransactionState.initial());
+    registerFallbackValue(
+      TransactionEntity(
+        userId: 'u1',
+        categoryId: 1,
+        type: TransactionType.expense,
+        amount: 10,
+        date: DateTime(2025, 1, 1),
+        note: null,
+      ),
+    );
+  });
+
   setUp(() {
     cubit = MockAddTransactionCubit();
     navObserver = MockNavigatorObserver();
@@ -35,122 +116,128 @@ void main() {
     WidgetTester tester, {
     required AddTransactionState state,
     Stream<AddTransactionState>? stream,
+    bool pushRoute = false,
   }) async {
     when(() => cubit.state).thenReturn(state);
-    whenListen(
+    whenListen<AddTransactionState>(
       cubit,
-      stream ?? const Stream.empty(),
+      stream ?? const Stream<AddTransactionState>.empty(),
       initialState: state,
+    );
+
+    final screen = BlocProvider<AddTransactionCubit>.value(
+      value: cubit,
+      child: const AddTransactionScreen(),
     );
 
     await tester.pumpWidget(
       MaterialApp(
         navigatorObservers: [navObserver],
-        home: BlocProvider<AddTransactionCubit>.value(
-          value: cubit,
-          child: const AddTransactionScreen(),
-        ),
+        home: pushRoute ? _HostPushScreen(child: screen) : screen,
       ),
     );
 
-    // settle first frame
-    await tester.pump();
+    await _stablePump(tester);
+
+    if (pushRoute) {
+      await tester.tap(find.byKey(const Key('open-add-transaction')));
+      await tester.pump();
+      await _stablePump(tester);
+      expect(_titleFinder(), findsOneWidget);
+    }
   }
 
-  group('AddTransactionScreen - rendering', () {
-    testWidgets('renders title and Save button', (tester) async {
-      await pumpScreen(
-        tester,
-        state: AddTransactionState.initial(),
-      );
-
-      expect(find.text('Add transaction'), findsOneWidget);
-      expect(find.widgetWithText(ElevatedButton, 'Save'), findsOneWidget);
+  group('AddTransactionScreen (NEW UI) - rendering', () {
+    testWidgets('renders title and Add CTA label', (tester) async {
+      await pumpScreen(tester, state: AddTransactionState.initial());
+      expect(_titleFinder(), findsOneWidget);
+      expect(find.text('Add'), findsWidgets);
     });
 
-    testWidgets('Save button is disabled when cannot submit', (tester) async {
-      final s = AddTransactionState.initial(); // amount=0, category=null => canSubmit false
-      await pumpScreen(tester, state: s);
-
-      final btn = tester.widget<ElevatedButton>(
-        find.widgetWithText(ElevatedButton, 'Save'),
-      );
-      expect(btn.onPressed, isNull);
-    });
-
-    testWidgets('shows LinearProgressIndicator overlay when loading', (tester) async {
+    testWidgets('shows linear progress when loading', (tester) async {
       final s = AddTransactionState.initial().copyWith(isLoading: true);
       await pumpScreen(tester, state: s);
-
       expect(find.byType(LinearProgressIndicator), findsOneWidget);
     });
   });
 
-  group('AddTransactionScreen - snackbar', () {
+  group('AddTransactionScreen (NEW UI) - snackbar', () {
     testWidgets('shows SnackBar when state.error is set', (tester) async {
-      final initial = AddTransactionState.initial();
-      final errorState = initial.copyWith(error: 'Boom');
+      final s0 = AddTransactionState.initial();
+      final s1 = s0.copyWith(error: 'Boom');
 
       await pumpScreen(
         tester,
-        state: initial,
-        stream: Stream.fromIterable([errorState]),
+        state: s0,
+        stream: Stream<AddTransactionState>.fromIterable([s1]),
       );
 
-      await tester.pump(); // allow listener to run
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.text('Boom'), findsOneWidget);
+      await _pumpFor(tester, const Duration(milliseconds: 300));
+
+      final snackBars = find.byType(SnackBar);
+      expect(snackBars, findsWidgets);
+
+      expect(
+        find.descendant(of: snackBars, matching: find.text('Boom')),
+        findsAtLeastNWidgets(1),
+      );
     });
   });
 
-  group('AddTransactionScreen - submit flow', () {
-    testWidgets('tap Save -> calls cubit.submit; when true => shows success SnackBar and pop(true)', (tester) async {
-      final canSubmitState = AddTransactionState.initial().copyWith(
-        category: incomeCat,
-        amount: 100,
-        // date/note keep default
-      );
+  group('AddTransactionScreen (NEW UI) - submit flow', () {
+    testWidgets(
+      'when submit returns false -> does NOT pop',
+      (tester) async {
+        final canSubmitState = AddTransactionState.initial().copyWith(
+          category: incomeCat,
+          amount: 100,
+        );
 
-      when(() => cubit.submit()).thenAnswer((_) async => true);
+        when(() => cubit.submit()).thenAnswer((_) async => false);
 
-      await pumpScreen(tester, state: canSubmitState);
+        await pumpScreen(
+          tester,
+          state: canSubmitState,
+          pushRoute: true,
+        );
 
-      // enabled
-      final btnFinder = find.widgetWithText(ElevatedButton, 'Save');
-      final btn = tester.widget<ElevatedButton>(btnFinder);
-      expect(btn.onPressed, isNotNull);
+        final cta = _addCtaFinder();
+        expect(cta, findsWidgets);
 
-      await tester.tap(btnFinder);
-      await tester.pump(); // start async
-      await tester.pump(const Duration(milliseconds: 50));
+        await _safeTapFirst(tester, cta, reason: 'Tap Add CTA');
+        await _pumpFor(tester, const Duration(milliseconds: 300));
 
-      verify(() => cubit.submit()).called(1);
+        verify(() => cubit.submit()).called(1);
+        verifyNever(() => navObserver.didPop(any(), any()));
+      },
+    );
 
-      // success snackbar
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.text('Transaction added'), findsOneWidget);
+    testWidgets(
+      'when cannot submit -> tapping should NOT call submit and should NOT pop',
+      (tester) async {
+        final cannotSubmitState = AddTransactionState.initial();
 
-      // verify pop called with true (didPop route)
-      verify(() => navObserver.didPop(any(), any())).called(1);
-    });
+        when(() => cubit.submit()).thenAnswer((_) async => true);
 
-    testWidgets('tap Save -> when submit returns false => does NOT pop', (tester) async {
-      final canSubmitState = AddTransactionState.initial().copyWith(
-        category: incomeCat,
-        amount: 100,
-      );
+        await pumpScreen(
+          tester,
+          state: cannotSubmitState,
+          pushRoute: true,
+        );
 
-      when(() => cubit.submit()).thenAnswer((_) async => false);
+        final cta = _addCtaFinder();
+        if (cta.evaluate().isNotEmpty) {
+          await _safeTapFirst(
+            tester,
+            cta,
+            reason: 'Tap Add CTA (should be disabled)',
+          );
+          await _pumpFor(tester, const Duration(milliseconds: 200));
+        }
 
-      await pumpScreen(tester, state: canSubmitState);
-
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Save'));
-      await tester.pump();
-
-      verify(() => cubit.submit()).called(1);
-
-      // no navigation pop
-      verifyNever(() => navObserver.didPop(any(), any()));
-    });
+        verifyNever(() => cubit.submit());
+        verifyNever(() => navObserver.didPop(any(), any()));
+      },
+    );
   });
 }

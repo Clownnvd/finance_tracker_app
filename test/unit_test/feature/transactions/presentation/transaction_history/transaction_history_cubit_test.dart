@@ -1,9 +1,9 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:finance_tracker_app/feature/transactions/domain/entities/category_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:finance_tracker_app/feature/transactions/domain/entities/transaction_entity.dart';
-import 'package:finance_tracker_app/feature/transactions/domain/entities/category_entity.dart';
 import 'package:finance_tracker_app/feature/transactions/domain/repositories/transactions_repository.dart';
 import 'package:finance_tracker_app/feature/transactions/presentation/transaction_history/cubit/transaction_history_cubit.dart';
 import 'package:finance_tracker_app/feature/transactions/presentation/transaction_history/cubit/transaction_history_state.dart';
@@ -75,20 +75,18 @@ void main() {
       },
       act: (c) => c.load(from: DateTime(2025, 1, 1), to: DateTime(2025, 1, 31)),
       expect: () => [
-        TransactionHistoryState.initial().copyWith(
-          isLoading: true,
-          error: null,
-          items: <TransactionEntity>[],
-          hasMore: true,
-          isLoadingMore: false,
-        ),
-        predicate<TransactionHistoryState>((s) {
-          return s.isLoading == false &&
-              s.items.length == 20 &&
-              s.hasMore == true &&
-              s.isLoadingMore == false &&
-              s.error == null;
-        }),
+        isA<TransactionHistoryState>()
+            .having((s) => s.isLoading, 'isLoading', true)
+            .having((s) => s.isLoadingMore, 'isLoadingMore', false)
+            .having((s) => s.hasMore, 'hasMore', true)
+            .having((s) => s.items.length, 'items.length', 0)
+            .having((s) => s.error, 'error', isNull),
+        isA<TransactionHistoryState>()
+            .having((s) => s.isLoading, 'isLoading', false)
+            .having((s) => s.isLoadingMore, 'isLoadingMore', false)
+            .having((s) => s.items.length, 'items.length', 20)
+            .having((s) => s.hasMore, 'hasMore', true)
+            .having((s) => s.error, 'error', isNull),
       ],
       verify: (_) {
         verify(() => repo.getTransactionHistory(
@@ -124,26 +122,16 @@ void main() {
       },
       act: (c) => c.load(),
       expect: () => [
-        TransactionHistoryState.initial().copyWith(
-          isLoading: true,
-          error: null,
-          items: <TransactionEntity>[],
-          hasMore: true,
-          isLoadingMore: false,
-        ),
-        TransactionHistoryState.initial().copyWith(
-          isLoading: false,
-          items: List.generate(
-            5,
-            (i) => tx(
-              id: i,
-              type: TransactionType.expense,
-              amount: 10,
-              date: DateTime(2025, 1, 1, 10, i),
-            ),
-          ),
-          hasMore: false,
-        ),
+        isA<TransactionHistoryState>()
+            .having((s) => s.isLoading, 'isLoading', true)
+            .having((s) => s.items.length, 'items.length', 0)
+            .having((s) => s.hasMore, 'hasMore', true)
+            .having((s) => s.error, 'error', isNull),
+        isA<TransactionHistoryState>()
+            .having((s) => s.isLoading, 'isLoading', false)
+            .having((s) => s.items.length, 'items.length', 5)
+            .having((s) => s.hasMore, 'hasMore', false)
+            .having((s) => s.error, 'error', isNull),
       ],
     );
 
@@ -171,7 +159,7 @@ void main() {
     );
 
     blocTest<TransactionHistoryCubit, TransactionHistoryState>(
-      'load error: emits error and isLoading=false',
+      'load error: emits error and isLoading=false (list cleared)',
       build: () {
         when(() => repo.getTransactionHistory(
               from: any(named: 'from'),
@@ -183,15 +171,18 @@ void main() {
       },
       act: (c) => c.load(),
       expect: () => [
-        TransactionHistoryState.initial().copyWith(
-          isLoading: true,
-          error: null,
-          items: <TransactionEntity>[],
-          hasMore: true,
-          isLoadingMore: false,
-        ),
-        predicate<TransactionHistoryState>((s) =>
-            s.isLoading == false && (s.error?.isNotEmpty ?? false)),
+        isA<TransactionHistoryState>()
+            .having((s) => s.isLoading, 'isLoading', true)
+            .having((s) => s.items.length, 'items.length', 0)
+            .having((s) => s.hasMore, 'hasMore', true)
+            .having((s) => s.isLoadingMore, 'isLoadingMore', false)
+            .having((s) => s.error, 'error', isNull),
+        isA<TransactionHistoryState>()
+            .having((s) => s.isLoading, 'isLoading', false)
+            .having((s) => s.isLoadingMore, 'isLoadingMore', false)
+            .having((s) => s.items.length, 'items.length', 0)
+            .having((s) => s.hasMore, 'hasMore', true)
+            .having((s) => s.error, 'error', isNotNull),
       ],
     );
 
@@ -218,40 +209,46 @@ void main() {
               limit: 20,
               offset: 2,
             )).thenAnswer((_) async {
-          // return < 20 => hasMore false
           return [
-            tx(id: 3, type: TransactionType.income, amount: 100, date: DateTime(2025, 1, 1, 12, 3)),
+            tx(
+              id: 3,
+              type: TransactionType.income,
+              amount: 100,
+              date: DateTime(2025, 1, 1, 12, 3),
+            ),
           ];
         });
         return cubit;
       },
       seed: () => TransactionHistoryState.initial().copyWith(
         items: [
-          tx(id: 1, type: TransactionType.expense, amount: 10, date: DateTime(2025, 1, 1, 12, 1)),
-          tx(id: 2, type: TransactionType.expense, amount: 20, date: DateTime(2025, 1, 1, 12, 2)),
+          tx(
+            id: 1,
+            type: TransactionType.expense,
+            amount: 10,
+            date: DateTime(2025, 1, 1, 12, 1),
+          ),
+          tx(
+            id: 2,
+            type: TransactionType.expense,
+            amount: 20,
+            date: DateTime(2025, 1, 1, 12, 2),
+          ),
         ],
         hasMore: true,
       ),
       act: (c) => c.loadMore(),
       expect: () => [
-        TransactionHistoryState.initial().copyWith(
-          items: [
-            tx(id: 1, type: TransactionType.expense, amount: 10, date: DateTime(2025, 1, 1, 12, 1)),
-            tx(id: 2, type: TransactionType.expense, amount: 20, date: DateTime(2025, 1, 1, 12, 2)),
-          ],
-          hasMore: true,
-          isLoadingMore: true,
-          error: null,
-        ),
-        TransactionHistoryState.initial().copyWith(
-          items: [
-            tx(id: 1, type: TransactionType.expense, amount: 10, date: DateTime(2025, 1, 1, 12, 1)),
-            tx(id: 2, type: TransactionType.expense, amount: 20, date: DateTime(2025, 1, 1, 12, 2)),
-            tx(id: 3, type: TransactionType.income, amount: 100, date: DateTime(2025, 1, 1, 12, 3)),
-          ],
-          isLoadingMore: false,
-          hasMore: false,
-        ),
+        isA<TransactionHistoryState>()
+            .having((s) => s.isLoadingMore, 'isLoadingMore', true)
+            .having((s) => s.hasMore, 'hasMore', true)
+            .having((s) => s.error, 'error', isNull)
+            .having((s) => s.items.length, 'items.length', 2),
+        isA<TransactionHistoryState>()
+            .having((s) => s.isLoadingMore, 'isLoadingMore', false)
+            .having((s) => s.hasMore, 'hasMore', false)
+            .having((s) => s.error, 'error', isNull)
+            .having((s) => s.items.length, 'items.length', 3),
       ],
       verify: (_) => verify(() => repo.getTransactionHistory(
             from: any(named: 'from'),
@@ -262,7 +259,7 @@ void main() {
     );
 
     blocTest<TransactionHistoryCubit, TransactionHistoryState>(
-      'loadMore error: emits error and isLoadingMore=false',
+      'loadMore error: emits error and isLoadingMore=false (keeps existing items)',
       build: () {
         when(() => repo.getTransactionHistory(
               from: any(named: 'from'),
@@ -273,19 +270,26 @@ void main() {
         return cubit;
       },
       seed: () => TransactionHistoryState.initial().copyWith(
-        items: [tx(id: 1, type: TransactionType.expense, amount: 10, date: DateTime(2025, 1, 1, 10))],
+        items: [
+          tx(
+            id: 1,
+            type: TransactionType.expense,
+            amount: 10,
+            date: DateTime(2025, 1, 1, 10),
+          )
+        ],
         hasMore: true,
       ),
       act: (c) => c.loadMore(),
       expect: () => [
-        TransactionHistoryState.initial().copyWith(
-          items: [tx(id: 1, type: TransactionType.expense, amount: 10, date: DateTime(2025, 1, 1, 10))],
-          hasMore: true,
-          isLoadingMore: true,
-          error: null,
-        ),
-        predicate<TransactionHistoryState>((s) =>
-            s.isLoadingMore == false && (s.error?.isNotEmpty ?? false)),
+        isA<TransactionHistoryState>()
+            .having((s) => s.isLoadingMore, 'isLoadingMore', true)
+            .having((s) => s.items.length, 'items.length', 1)
+            .having((s) => s.error, 'error', isNull),
+        isA<TransactionHistoryState>()
+            .having((s) => s.isLoadingMore, 'isLoadingMore', false)
+            .having((s) => s.items.length, 'items.length', 1)
+            .having((s) => s.error, 'error', isNotNull),
       ],
     );
   });

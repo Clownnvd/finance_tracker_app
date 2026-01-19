@@ -1,7 +1,12 @@
+// lib/feature/transactions/presentation/history/pages/transaction_history_screen.dart
+// NOTE: Update the import path if your DI file differs.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:finance_tracker_app/core/di/di.dart'; // <-- đổi path nếu DI file bạn khác
+import 'package:finance_tracker_app/core/constants/strings.dart';
+import 'package:finance_tracker_app/core/di/di.dart';
+import 'package:finance_tracker_app/core/theme/app_theme.dart';
 
 import '../../../domain/entities/transaction_entity.dart';
 import '../../../domain/usecases/get_categories.dart';
@@ -40,6 +45,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   @override
   void initState() {
     super.initState();
+
     _from = widget.initialFrom;
     _to = widget.initialTo;
 
@@ -60,7 +66,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     });
 
     try {
-      // FIX: No Provider needed. Use GetIt directly.
       final getCategories = getIt<GetCategories>();
       final cats = await getCategories.call();
 
@@ -102,51 +107,70 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final categoryReady = _categoryNameById.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Transaction History'),
-        actions: [
-          IconButton(
-            onPressed: _isLoadingCategories ? null : _loadCategories,
-            icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'Reload categories',
-          ),
-        ],
-      ),
-      body: BlocBuilder<TransactionHistoryCubit, TransactionHistoryState>(
-        builder: (context, state) {
-          final sections = HistoryGrouping.groupByDay(state.items);
+      backgroundColor: AppColors.white,
 
-          final topBanner = (_categoryError != null && _categoryError!.trim().isNotEmpty)
-              ? _Banner(text: 'Category load failed: ${_categoryError!.trim()}')
-              : null;
+      // Remove default AppBar to match screenshot.
+      body: SafeArea(
+        child: BlocBuilder<TransactionHistoryCubit, TransactionHistoryState>(
+          builder: (context, state) {
+            final sections = HistoryGrouping.groupByDay(state.items);
 
-          final isInitialBlockingLoading =
-              state.isLoading || (_isLoadingCategories && !categoryReady && state.items.isEmpty);
+            final bannerText = _categoryError?.trim();
+            final topBanner = (bannerText != null && bannerText.isNotEmpty)
+                ? _Banner(text: '${AppStrings.categoryLoadFailedPrefix}$bannerText')
+                : null;
 
-          return Column(
-            children: [
-              if (topBanner != null) topBanner,
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: _onRefresh,
-                  child: HistoryList(
-                    sections: sections,
-                    categoryNameById: _categoryNameById,
-                    categoryIconById: _categoryIconById,
-                    isLoading: isInitialBlockingLoading,
-                    isLoadingMore: state.isLoadingMore,
-                    error: state.error,
-                    currencySymbol: widget.currencySymbol,
-                    onLoadMore: state.hasMore ? _onLoadMore : null,
-                    onItemTap: (TransactionEntity tx) {
-                      // TODO: open details/edit
-                    },
+            final isInitialBlockingLoading =
+                state.isLoading ||
+                (_isLoadingCategories && !categoryReady && state.items.isEmpty);
+
+            return Column(
+              children: [
+                if (topBanner != null) topBanner,
+
+                // Title in body (big, blue) like screenshot.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                    AppSpacing.sm,
+                  ),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      AppStrings.transactionHistoryTitle,
+                      style: AppTextStyles.headline.copyWith(
+                        fontSize: 28, // closer to screenshot
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _onRefresh,
+                    child: HistoryList(
+                      sections: sections,
+                      categoryNameById: _categoryNameById,
+                      categoryIconById: _categoryIconById,
+                      isLoading: isInitialBlockingLoading,
+                      isLoadingMore: state.isLoadingMore,
+                      error: state.error,
+                      currencySymbol: widget.currencySymbol,
+                      onLoadMore: state.hasMore ? _onLoadMore : null,
+                      onItemTap: (TransactionEntity tx) {
+                        // TODO: Open details/edit screen.
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -158,15 +182,14 @@ class _Banner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-      color: theme.colorScheme.error.withOpacity(0.08),
+      color: AppColors.error.withOpacity(0.08),
       child: Text(
         text,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.error,
+        style: AppTextStyles.caption.copyWith(
+          color: AppColors.error,
           fontWeight: FontWeight.w600,
         ),
       ),

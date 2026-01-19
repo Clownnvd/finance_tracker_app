@@ -1,5 +1,5 @@
-import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
-import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
+import 'package:bloc_test/bloc_test.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -7,76 +7,96 @@ import 'package:finance_tracker_app/core/error/exceptions.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/login.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/sign_up.dart';
-
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
 
 class MockLogin extends Mock implements Login {}
 
 class MockSignup extends Mock implements Signup {}
 
+class _FakeCancelToken extends Fake implements CancelToken {}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late MockLogin mockLogin;
   late MockSignup mockSignup;
-  late AuthCubit cubit;
 
   const email = 'test@example.com';
   const password = 'Password123';
   const fullName = 'Test User';
 
-  final user = UserModel(
+  const user = UserModel(
     id: 'user-1',
     email: email,
     fullName: fullName,
   );
 
+  setUpAll(() {
+    registerFallbackValue(_FakeCancelToken());
+  });
+
   setUp(() {
     mockLogin = MockLogin();
     mockSignup = MockSignup();
-    cubit = AuthCubit(login: mockLogin, signup: mockSignup);
   });
 
-  tearDown(() {
-    cubit.close();
-  });
+  group('AuthCubit - signup', () {
+    blocTest<AuthCubit, AuthState>(
+      'success emits [AuthLoading, AuthSuccess]',
+      build: () {
+        when(() => mockSignup(
+              email: any(named: 'email'),
+              password: any(named: 'password'),
+              fullName: any(named: 'fullName'),
+              cancelToken: any(named: 'cancelToken'),
+            )).thenAnswer((_) async => user);
 
-  test('signup success emits [AuthLoading, AuthSuccess]', () async {
-    when(
-      () => mockSignup(
-        email: any(named: 'email'),
-        password: any(named: 'password'),
-        fullName: any(named: 'fullName'),
-      ),
-    ).thenAnswer((_) async => user);
-
-    expectLater(
-      cubit.stream,
-      emitsInOrder([
+        return AuthCubit(login: mockLogin, signup: mockSignup);
+      },
+      act: (c) => c.signup(fullName, email, password),
+      expect: () => [
         isA<AuthLoading>(),
-        AuthSuccess(user),
-      ]),
+        isA<AuthSuccess>().having((s) => s.user, 'user', user),
+      ],
+      verify: (_) {
+        verify(() => mockSignup(
+              email: email,
+              password: password,
+              fullName: fullName,
+              cancelToken: any(named: 'cancelToken'),
+            )).called(1);
+      },
     );
 
-    await cubit.signup(fullName, email, password);
-  });
+    blocTest<AuthCubit, AuthState>(
+      'failure emits [AuthLoading, AuthFailure]',
+      build: () {
+        const msg = 'Email already used';
 
-  test('signup failure emits [AuthLoading, AuthFailure]', () async {
-    const msg = 'Email already used';
+        when(() => mockSignup(
+              email: any(named: 'email'),
+              password: any(named: 'password'),
+              fullName: any(named: 'fullName'),
+              cancelToken: any(named: 'cancelToken'),
+            )).thenThrow(const AuthException(msg));
 
-    when(
-      () => mockSignup(
-        email: any(named: 'email'),
-        password: any(named: 'password'),
-        fullName: any(named: 'fullName'),
-      ),
-    ).thenThrow(const AuthException(msg));
-
-    expectLater(
-      cubit.stream,
-      emitsInOrder([
+        return AuthCubit(login: mockLogin, signup: mockSignup);
+      },
+      act: (c) => c.signup(fullName, email, password),
+      expect: () => [
         isA<AuthLoading>(),
-        isA<AuthFailure>().having((s) => s.message, 'message', msg),
-      ]),
+        isA<AuthFailure>()
+            .having((s) => s.message, 'message', 'Email already used'),
+      ],
+      verify: (_) {
+        verify(() => mockSignup(
+              email: email,
+              password: password,
+              fullName: fullName,
+              cancelToken: any(named: 'cancelToken'),
+            )).called(1);
+      },
     );
-
-    await cubit.signup(fullName, email, password);
   });
 }

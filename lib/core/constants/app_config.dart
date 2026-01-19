@@ -1,3 +1,5 @@
+// lib/core/constants/app_config.dart
+
 /// Global application configuration & limits.
 ///
 /// Do NOT put colors or spacing here.
@@ -25,5 +27,6 @@ class AppConfig {
   // =======================
   // UX delays
   // =======================
+  /// Delay to keep success snackbar visible before navigating back.
   static const int successSnackDelayMs = 800;
 }

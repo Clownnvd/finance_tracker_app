@@ -1,8 +1,10 @@
+// lib/feature/dashboard/presentation/pages/dashboard_screen.dart
+import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/router/app_router.dart';
+import 'package:finance_tracker_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:finance_tracker_app/core/theme/app_theme.dart';
 import 'package:finance_tracker_app/shared/widgets/ui_kit.dart';
 
 import 'package:finance_tracker_app/feature/dashboard/presentation/cubit/dashboard_cubit.dart';
@@ -18,6 +20,10 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _navIndex = 0;
+
+  static const Color _incomeColor = Color(0xFF5AA9A6);
+  static const Color _expenseColor = Color(0xFFF2A34B);
+  static const Color _balanceColor = Color(0xFF0B6B6B);
 
   @override
   void initState() {
@@ -73,7 +79,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Color _colorForTx(DashboardTransaction tx) {
-    return tx.isIncome ? const Color(0xFF5AA9A6) : const Color(0xFFF2A34B);
+    return tx.isIncome ? _incomeColor : _expenseColor;
+  }
+
+  Future<void> _refresh() async {
+    await context.read<DashboardCubit>().refresh(recentLimit: 3);
+  }
+
+  void _onNavChanged(int index) {
+    if (index == 1) {
+      Navigator.of(context).pushNamed(AppRoutes.addTransaction);
+      return;
+    }
+
+    if (index == 2) {
+      Navigator.of(context).pushNamed(AppRoutes.transactionHistory);
+      return;
+    }
+
+    setState(() => _navIndex = index);
+
+    if (index == 3) {
+      return;
+    }
+
+    if (index == 4) {
+      return;
+    }
   }
 
   @override
@@ -84,21 +116,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       body: SafeArea(
         child: BlocConsumer<DashboardCubit, DashboardState>(
+          listenWhen: (prev, next) => prev.error != next.error,
           listener: (context, state) {
             final msg = state.error;
-            if (msg != null && msg.isNotEmpty) {
+            if (msg != null && msg.trim().isNotEmpty) {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
-                ..showSnackBar(SnackBar(content: Text(msg)));
+                ..showSnackBar(SnackBar(content: Text(msg.trim())));
             }
           },
           builder: (context, state) {
             final summary = state.data?.summary;
+
             final income = summary?.income ?? 0.0;
             final expenses = summary?.expenses ?? 0.0;
-            final balance = (summary == null)
-                ? 0.0
-                : (summary.income - summary.expenses);
+            final balance = (summary == null) ? 0.0 : (income - expenses);
+
             final isLoading = state.isLoading;
 
             return Stack(
@@ -107,9 +140,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
                     child: RefreshIndicator(
-                      onRefresh: () => context.read<DashboardCubit>().refresh(
-                        recentLimit: 3,
-                      ),
+                      onRefresh: _refresh,
                       child: SingleChildScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.fromLTRB(
@@ -122,7 +153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             DashboardHeader(
-                              title: 'Dashboard',
+                              title: AppStrings.dashboardTitle,
                               style: tt.headlineMedium?.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
@@ -132,19 +163,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             SummaryRow(
                               items: [
                                 SummaryItem(
-                                  label: 'INCOME',
+                                  label: AppStrings.income,
                                   value: _money(income),
-                                  background: const Color(0xFF5AA9A6),
+                                  background: _incomeColor,
                                 ),
                                 SummaryItem(
-                                  label: 'EXPENSES',
+                                  label: AppStrings.expenses,
                                   value: _money(expenses),
-                                  background: const Color(0xFFF2A34B),
+                                  background: _expenseColor,
                                 ),
                                 SummaryItem(
-                                  label: 'BALANCE',
+                                  label: AppStrings.balance,
                                   value: _money(balance),
-                                  background: const Color(0xFF0B6B6B),
+                                  background: _balanceColor,
                                 ),
                               ],
                             ),
@@ -154,14 +185,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             DonutAndLegend(
                               income: income,
                               expenses: expenses,
-                              incomeColor: const Color(0xFF5AA9A6),
-                              expensesColor: const Color(0xFFF2A34B),
+                              incomeColor: _incomeColor,
+                              expensesColor: _expenseColor,
                             ),
 
                             const SizedBox(height: AppSpacing.xl),
 
                             Text(
-                              'Recent Transactions',
+                              AppStrings.recentTransactions,
                               style: tt.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
@@ -171,11 +202,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             if (state.recent.isEmpty && !isLoading)
                               const Padding(
                                 padding: EdgeInsets.only(top: AppSpacing.md),
-                                child: Text('No transactions yet.'),
+                                child: Text(AppStrings.noTransactionsYet),
                               )
                             else
                               ...state.recent.map((tx) {
                                 final color = _colorForTx(tx);
+                                final secondary = (tx.note == null ||
+                                        tx.note!.trim().isEmpty)
+                                    ? null
+                                    : tx.note!.trim();
+
                                 return Padding(
                                   padding: const EdgeInsets.only(
                                     bottom: AppSpacing.sm,
@@ -186,14 +222,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     title: tx.title,
                                     date: _dateShort(tx.date),
                                     amountPrimary: _money(tx.amount),
-                                    amountSecondary:
-                                        tx.note == null ||
-                                            tx.note!.trim().isEmpty
-                                        ? ''
-                                        : tx.note!.trim(),
+                                    amountSecondary: secondary ?? '',
                                   ),
                                 );
-                              }).toList(),
+                              }),
                           ],
                         ),
                       ),
@@ -220,27 +252,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       bottomNavigationBar: DashboardBottomNav(
         currentIndex: _navIndex,
-        onChanged: (index) {
-          if (index == 1) {
-            // Add button → open AddTransaction screen
-            Navigator.of(context).pushNamed(AppRoutes.addTransaction);
-            return;
-          }
-
-          if (index == 2) {
-            // History button → open TransactionHistory screen
-            Navigator.of(context).pushNamed(AppRoutes.transactionHistory);
-            return;
-          }
-
-          setState(() => _navIndex = index);
-        },
+        onChanged: _onNavChanged,
         items: const [
-          DashboardNavItem(icon: Icons.home, label: 'Home'),
-          DashboardNavItem(icon: Icons.add, label: 'Add'),
-          DashboardNavItem(icon: Icons.history, label: 'History'),
-          DashboardNavItem(icon: Icons.bar_chart, label: 'Report'),
-          DashboardNavItem(icon: Icons.settings, label: 'Settings'),
+          DashboardNavItem(icon: Icons.home, label: AppStrings.navHome),
+          DashboardNavItem(icon: Icons.add, label: AppStrings.navAdd),
+          DashboardNavItem(icon: Icons.history, label: AppStrings.navHistory),
+          DashboardNavItem(icon: Icons.bar_chart, label: AppStrings.navReport),
+          DashboardNavItem(icon: Icons.settings, label: AppStrings.navSettings),
         ],
       ),
     );

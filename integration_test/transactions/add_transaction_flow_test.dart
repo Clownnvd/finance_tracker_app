@@ -1,3 +1,16 @@
+// integration_test/app_flow_add_transaction_test.dart
+//
+// FULL FILE
+// Keeps your original flow (Get Started -> Login -> Dashboard),
+// but FIXES ONLY the Dashboard -> Add Transaction part to match NEW UI:
+//
+// - Title: "Add Transaction"
+// - CTA button: "Add" (NOT ElevatedButton)
+// - Category picker is tappable via "Category" label / selected name / first InkWell
+//
+// Also fixes the crash: StateError (Bad state: No element)
+// by never calling ensureVisible/tap on a Finder with 0 elements.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -53,6 +66,23 @@ void main() {
     fail('Timeout waiting for widget to disappear: $finder');
   }
 
+  // Tap a finder safely (requires it exists).
+  Future<void> safeTapFirst(
+    WidgetTester tester,
+    Finder finder, {
+    String? reason,
+  }) async {
+    expect(
+      finder,
+      findsWidgets,
+      reason: reason ?? 'Expected widget to exist before tap.',
+    );
+
+    await tester.ensureVisible(finder.first);
+    await tester.tap(finder.first);
+    await tester.pump();
+  }
+
   // -------------------------
   // Existing finders (your flow)
   // -------------------------
@@ -66,10 +96,9 @@ void main() {
   Finder findPasswordField() => find.byType(TextFormField).at(1);
 
   // -------------------------
-  // NEW: Dashboard -> Add Transaction finders (flexible)
+  // Dashboard -> Add Transaction entry (flexible)
   // -------------------------
   Finder findAddTransactionEntry() {
-    // Try common patterns in priority order
     final fab = find.byType(FloatingActionButton).hitTestable();
     if (fab.evaluate().isNotEmpty) return fab;
 
@@ -85,72 +114,93 @@ void main() {
     final plusTooltip = find.byTooltip('Add').hitTestable();
     if (plusTooltip.evaluate().isNotEmpty) return plusTooltip;
 
-    // Fallback: return fab anyway (will fail later with clearer error)
     return fab;
   }
 
-  // AddTransactionScreen anchors
-  Finder findAddTransactionTitle() => find.text('Add transaction');
-  Finder findSaveButton() =>
-      find.widgetWithText(ElevatedButton, 'Save').hitTestable();
+  // -------------------------
+  // UPDATED: AddTransactionScreen anchors for NEW UI
+  // -------------------------
+  Finder findAddTransactionTitle() => find.text('Add Transaction');
 
-  // AmountField/NoteField are custom. We can still type into the first
-  // editable text fields on the screen.
+  // NEW UI: button might be InkWell/GestureDetector/Container, not ElevatedButton.
+  Finder findAddButton() {
+    // 1) prefer tapping the "Add" text itself (most stable)
+    final byText = find.text('Add').hitTestable();
+    if (byText.evaluate().isNotEmpty) return byText;
+
+    // 2) fallback to common tappables
+    final inkwell = find.byType(InkWell).hitTestable();
+    if (inkwell.evaluate().isNotEmpty) return inkwell.last;
+
+    final gesture = find.byType(GestureDetector).hitTestable();
+    if (gesture.evaluate().isNotEmpty) return gesture.last;
+
+    final container = find.byType(Container).hitTestable();
+    if (container.evaluate().isNotEmpty) return container.last;
+
+    // fallback: will fail with a clear message in safeTapFirst
+    return byText;
+  }
+
+  // Amount/Note: still TextField in your codebase.
   Finder findAmountInputAny() => find.byType(TextField).at(0);
   Finder findNoteInputAny() => find.byType(TextField).last;
 
-  // Category field: often ListTile / InkWell / GestureDetector
+  // Category field: new UI shows a "Category" label and a selectable row
   Finder findCategoryTapTarget() {
-    // Try common text labels
-    final byText = find.textContaining('Category').hitTestable();
-    if (byText.evaluate().isNotEmpty) return byText;
+    // Try tapping on selected name (e.g. Housing) if already set
+    final housing = find.text('Housing').hitTestable();
+    if (housing.evaluate().isNotEmpty) return housing;
 
-    // Common icon
-    final byIcon = find.byIcon(Icons.category).hitTestable();
-    if (byIcon.evaluate().isNotEmpty) return byIcon;
+    // Try common placeholder if your UI uses it anywhere
+    final select = find.text('Select category').hitTestable();
+    if (select.evaluate().isNotEmpty) return select;
 
-    // Fallback: tap the first ListTile-ish thing after Amount
-    final tile = find.byType(InkWell).hitTestable();
-    if (tile.evaluate().isNotEmpty) return tile.first;
+    // Try label "Category" and then nearest InkWell
+    final label = find.text('Category');
+    if (label.evaluate().isNotEmpty) {
+      final inkwells = find.byType(InkWell).hitTestable();
+      if (inkwells.evaluate().isNotEmpty) return inkwells.first;
+    }
 
-    return byText;
+    // Fallback: first InkWell on the screen
+    final inkwells = find.byType(InkWell).hitTestable();
+    if (inkwells.evaluate().isNotEmpty) return inkwells.first;
+
+    // fallback
+    return find.text('Category').hitTestable();
   }
 
   // On SelectCategory screen: choose an item
   Future<void> pickAnyCategory(WidgetTester tester) async {
-    // Prefer common category names if present
     final preferred = <Finder>[
-      find.textContaining('Salary').hitTestable(),
-      find.textContaining('Food').hitTestable(),
-      find.textContaining('Income').hitTestable(),
-      find.textContaining('Expense').hitTestable(),
-      find.textContaining('INCOME').hitTestable(),
-      find.textContaining('EXPENSE').hitTestable(),
+      find.text('Housing').hitTestable(),
+      find.text('Food').hitTestable(),
+      find.text('Shopping').hitTestable(),
+      find.text('Salary').hitTestable(),
+      find.text('Freelance').hitTestable(),
+      find.text('Investments').hitTestable(),
+      find.text('Other').hitTestable(),
     ];
 
     for (final f in preferred) {
       if (f.evaluate().isNotEmpty) {
-        await tester.tap(f.first);
-        await tester.pump();
+        await safeTapFirst(tester, f, reason: 'Pick category item');
         await pumpFor(tester, const Duration(milliseconds: 400));
         return;
       }
     }
 
-    // Fallback: tap first ListTile
-    final tiles = find.byType(ListTile).hitTestable();
+    final tiles = find.byType(InkWell).hitTestable();
     if (tiles.evaluate().isNotEmpty) {
-      await tester.tap(tiles.first);
-      await tester.pump();
+      await safeTapFirst(tester, tiles, reason: 'Pick first InkWell category');
       await pumpFor(tester, const Duration(milliseconds: 400));
       return;
     }
 
-    // Fallback: tap first tappable text
     final anyText = find.byType(Text).hitTestable();
     if (anyText.evaluate().isNotEmpty) {
-      await tester.tap(anyText.first);
-      await tester.pump();
+      await safeTapFirst(tester, anyText, reason: 'Pick first tappable text');
       await pumpFor(tester, const Duration(milliseconds: 400));
       return;
     }
@@ -159,7 +209,8 @@ void main() {
   }
 
   group('App flow: Get Started -> Login -> Dashboard -> Add Transaction', () {
-    testWidgets('should add a transaction and return to dashboard', (tester) async {
+    testWidgets('should add a transaction and return to dashboard',
+        (tester) async {
       // Start app
       app.main();
 
@@ -169,13 +220,13 @@ void main() {
       // Tap Get Started if exists
       final getStarted = findGetStartedButton();
       if (getStarted.evaluate().isNotEmpty) {
-        await tester.tap(getStarted);
-        await tester.pump();
+        await safeTapFirst(tester, getStarted, reason: 'Tap Get Started');
         await pumpFor(tester, const Duration(seconds: 1));
       }
 
       // Wait Login ready
-      await waitFor(tester, findLoginButton(), timeout: const Duration(seconds: 15));
+      await waitFor(tester, findLoginButton(),
+          timeout: const Duration(seconds: 15));
 
       // Enter credentials
       await tester.tap(findEmailField());
@@ -189,56 +240,66 @@ void main() {
       await pumpFor(tester, const Duration(milliseconds: 300));
 
       // Tap Login
-      await tester.ensureVisible(findLoginButton());
-      await tester.tap(findLoginButton());
-      await tester.pump();
+      await safeTapFirst(tester, findLoginButton(), reason: 'Tap Login');
 
       // Wait for Dashboard
-      await waitFor(tester, find.text('Dashboard'), timeout: const Duration(seconds: 30));
+      await waitFor(
+        tester,
+        find.text('Dashboard'),
+        timeout: const Duration(seconds: 30),
+      );
       await pumpFor(tester, const Duration(seconds: 1));
 
       // Optional: wait loading bar gone
       final loadingBar = find.byType(LinearProgressIndicator);
       if (loadingBar.evaluate().isNotEmpty) {
-        await waitUntilGone(tester, loadingBar, timeout: const Duration(seconds: 20));
+        await waitUntilGone(
+          tester,
+          loadingBar,
+          timeout: const Duration(seconds: 20),
+        );
       }
 
       // -------------------------
-      // NEW: Navigate to Add Transaction
+      // UPDATED: Navigate to Add Transaction (new UI)
       // -------------------------
       final addEntry = findAddTransactionEntry();
-      await tester.ensureVisible(addEntry);
-      await tester.tap(addEntry);
-      await tester.pump();
+      await safeTapFirst(tester, addEntry, reason: 'Open Add Transaction');
 
-      // Wait AddTransaction screen
-      await waitFor(tester, findAddTransactionTitle(), timeout: const Duration(seconds: 15));
+      // Wait AddTransaction screen (new title)
+      await waitFor(
+        tester,
+        findAddTransactionTitle(),
+        timeout: const Duration(seconds: 15),
+      );
       await pumpFor(tester, const Duration(milliseconds: 400));
 
-      // Fill amount (best-effort: first TextField)
+      // Fill amount
       final amountField = findAmountInputAny();
       if (amountField.evaluate().isNotEmpty) {
         await tester.tap(amountField);
         await tester.pump();
-        await tester.enterText(amountField, '120000');
+        await tester.enterText(amountField, '2500');
         await pumpFor(tester, const Duration(milliseconds: 300));
       }
 
       // Open category picker
       final catTap = findCategoryTapTarget();
-      await tester.ensureVisible(catTap);
-      await tester.tap(catTap);
-      await tester.pump();
+      await safeTapFirst(tester, catTap, reason: 'Open category picker');
 
-      // Pick a category on the next screen (or bottom sheet)
+      // Pick category
       await pumpFor(tester, const Duration(milliseconds: 500));
       await pickAnyCategory(tester);
 
-      // Back on AddTransactionScreen (wait title again)
-      await waitFor(tester, findAddTransactionTitle(), timeout: const Duration(seconds: 10));
+      // Back on AddTransaction screen
+      await waitFor(
+        tester,
+        findAddTransactionTitle(),
+        timeout: const Duration(seconds: 10),
+      );
       await pumpFor(tester, const Duration(milliseconds: 300));
 
-      // Fill note (best-effort: last TextField)
+      // Fill note
       final noteField = findNoteInputAny();
       if (noteField.evaluate().isNotEmpty) {
         await tester.tap(noteField);
@@ -247,32 +308,34 @@ void main() {
         await pumpFor(tester, const Duration(milliseconds: 300));
       }
 
-      // Save
-      await tester.ensureVisible(findSaveButton());
-      await tester.tap(findSaveButton());
-      await tester.pump();
+      // Submit (new button text: Add)
+      final addBtn = findAddButton();
+      await safeTapFirst(tester, addBtn, reason: 'Submit Add Transaction');
 
       // If screen shows loading overlay, wait it out
       final savingBar = find.byType(LinearProgressIndicator);
       if (savingBar.evaluate().isNotEmpty) {
-        await waitUntilGone(tester, savingBar, timeout: const Duration(seconds: 20));
+        await waitUntilGone(
+          tester,
+          savingBar,
+          timeout: const Duration(seconds: 20),
+        );
       }
 
       // Expect success snackbar
       await waitFor(
         tester,
-        find.text('Transaction added'),
+        find.text(AppStrings.transactionAdded),
         timeout: const Duration(seconds: 15),
       );
 
-      // After success, screen pops back to previous (dashboard)
+      // After success, screen pops back to dashboard
       await waitFor(
         tester,
         find.text('Dashboard'),
         timeout: const Duration(seconds: 15),
       );
 
-      // Optional: dashboard anchors still exist
       expect(find.text('Dashboard'), findsOneWidget);
     });
   });

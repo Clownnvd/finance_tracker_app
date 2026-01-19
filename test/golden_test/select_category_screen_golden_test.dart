@@ -24,19 +24,57 @@ Widget _buildGoldenApp(SelectCategoryCubit cubit) {
   );
 }
 
+/// Pumps a few frames without waiting forever (avoids pumpAndSettle timeouts
+/// when there are indeterminate animations/spinners).
+Future<void> _stablePump(WidgetTester tester) async {
+  await tester.pump(); // first frame
+  await tester.pump(const Duration(milliseconds: 50));
+  await tester.pump(const Duration(milliseconds: 50));
+  await tester.pump(const Duration(milliseconds: 50));
+}
+
+/// Stubs async/side-effect methods that SelectCategoryScreen might call in initState.
+/// IMPORTANT: load() must return Future<void> (not null).
+void _stubCubitMethods(MockSelectCategoryCubit cubit) {
+  when(() => cubit.load(force: any(named: 'force'))).thenAnswer((_) async {});
+  // If your UI triggers select() in tests (usually not needed for golden), stub it too.
+  when(() => cubit.select(any())).thenReturn(null);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() {
     registerFallbackValue(SelectCategoryState.initial());
+    registerFallbackValue(
+      const CategoryEntity(
+        id: 0,
+        name: 'fallback',
+        type: TransactionType.expense,
+        icon: 'fallback',
+      ),
+    );
   });
 
-  const expense1 = CategoryEntity(id: 1, name: 'Food', type: TransactionType.expense, icon: 'food');
-  const income1 = CategoryEntity(id: 10, name: 'Salary', type: TransactionType.income, icon: 'salary');
+  const expense1 = CategoryEntity(
+    id: 1,
+    name: 'Food',
+    type: TransactionType.expense,
+    icon: 'food',
+  );
 
-  group('SelectCategoryScreen golden', () {
-    testWidgets('initial loading', (tester) async {
+  const income1 = CategoryEntity(
+    id: 10,
+    name: 'Salary',
+    type: TransactionType.income,
+    icon: 'salary',
+  );
+
+  group('SelectCategoryScreen golden (UI-safe)', () {
+    testWidgets('loading state (initial loading)', (tester) async {
       final cubit = MockSelectCategoryCubit();
+      _stubCubitMethods(cubit);
+
       final s = SelectCategoryState.initial().copyWith(isLoading: true);
 
       when(() => cubit.state).thenReturn(s);
@@ -47,7 +85,7 @@ void main() {
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+      await _stablePump(tester);
 
       await expectLater(
         find.byType(SelectCategoryScreen),
@@ -55,8 +93,9 @@ void main() {
       );
     });
 
-    testWidgets('loaded state', (tester) async {
+    testWidgets('loaded state (lists + selected item)', (tester) async {
       final cubit = MockSelectCategoryCubit();
+      _stubCubitMethods(cubit);
 
       final s = SelectCategoryState.initial(selectedCategoryId: 1).copyWith(
         isLoading: false,
@@ -73,7 +112,7 @@ void main() {
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+      await _stablePump(tester);
 
       await expectLater(
         find.byType(SelectCategoryScreen),
@@ -83,8 +122,10 @@ void main() {
 
     testWidgets('loading footer (LinearProgressIndicator visible)', (tester) async {
       final cubit = MockSelectCategoryCubit();
+      _stubCubitMethods(cubit);
 
       final s = SelectCategoryState.initial().copyWith(
+        // Your UI may show a footer loader when isLoading=true and lists exist.
         isLoading: true,
         expense: const [expense1],
         income: const [income1],
@@ -99,7 +140,7 @@ void main() {
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+      await _stablePump(tester);
 
       await expectLater(
         find.byType(SelectCategoryScreen),
@@ -107,8 +148,9 @@ void main() {
       );
     });
 
-    testWidgets('error snackbar', (tester) async {
+    testWidgets('error state (SnackBar visible)', (tester) async {
       final cubit = MockSelectCategoryCubit();
+      _stubCubitMethods(cubit);
 
       final s0 = SelectCategoryState.initial();
       final s1 = s0.copyWith(error: 'Something went wrong');
@@ -121,8 +163,11 @@ void main() {
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pump(); // allow listener
-      await tester.pumpAndSettle();
+
+      // Let BlocConsumer listener run and show SnackBar.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await _stablePump(tester);
 
       await expectLater(
         find.byType(SelectCategoryScreen),

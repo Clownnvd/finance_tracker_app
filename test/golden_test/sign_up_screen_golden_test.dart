@@ -10,7 +10,6 @@ import 'package:mocktail/mocktail.dart';
 import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/theme/app_theme.dart';
 
-
 class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 Widget _buildGoldenApp(AuthCubit cubit) {
@@ -28,10 +27,30 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() {
+    // Fallback for mocktail when the framework needs a default AuthState instance.
     registerFallbackValue(const AuthInitial());
   });
 
-  group('SignUpScreen golden', () {
+  // ---- Helpers ----
+
+  /// Prefer pumping a controlled duration instead of pumpAndSettle()
+  /// to avoid timeouts caused by infinite animations/loading overlays.
+  Future<void> pumpFor(
+    WidgetTester tester,
+    Duration duration, {
+    Duration step = const Duration(milliseconds: 50),
+  }) async {
+    var elapsed = Duration.zero;
+    while (elapsed < duration) {
+      await tester.pump(step);
+      elapsed += step;
+    }
+  }
+
+  /// Finds the primary CTA by its text only (UI may not use ElevatedButton).
+  Finder _signUpCta() => find.text(AppStrings.signUpTitle).hitTestable();
+
+  group('SignUpScreen golden (UI-safe)', () {
     testWidgets('initial state', (tester) async {
       final cubit = MockAuthCubit();
 
@@ -43,7 +62,8 @@ void main() {
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+      await tester.pump(); // first frame
+      await pumpFor(tester, const Duration(milliseconds: 300));
 
       await expectLater(
         find.byType(SignUpScreen),
@@ -62,13 +82,19 @@ void main() {
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await pumpFor(tester, const Duration(milliseconds: 300));
 
-      final buttonFinder =
-          find.widgetWithText(ElevatedButton, AppStrings.signUpTitle);
-      await tester.ensureVisible(buttonFinder);
-      await tester.tap(buttonFinder);
-      await tester.pumpAndSettle();
+      // Tap the CTA without relying on ElevatedButton.
+      final cta = _signUpCta();
+      expect(cta, findsWidgets, reason: 'SignUp CTA text should exist on screen.');
+
+      await tester.ensureVisible(cta.first);
+      await tester.tap(cta.first);
+
+      // Let validators + error text render.
+      await tester.pump();
+      await pumpFor(tester, const Duration(milliseconds: 500));
 
       await expectLater(
         find.byType(SignUpScreen),
@@ -89,7 +115,10 @@ void main() {
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+
+      // Do NOT pumpAndSettle() here (may hang due to animations).
+      await tester.pump(); // first frame
+      await pumpFor(tester, const Duration(milliseconds: 600));
 
       await expectLater(
         find.byType(SignUpScreen),
@@ -110,7 +139,8 @@ void main() {
       );
 
       await tester.pumpWidget(_buildGoldenApp(cubit));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await pumpFor(tester, const Duration(milliseconds: 600));
 
       await expectLater(
         find.byType(SignUpScreen),

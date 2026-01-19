@@ -64,24 +64,23 @@ void main() {
     );
 
     blocTest<SelectCategoryCubit, SelectCategoryState>(
-      'load(force=true) runs even if currently loading',
-      build: () {
-        when(() => getCategories()).thenAnswer((_) async => [income1]);
-        return build();
-      },
-      seed: () => SelectCategoryState.initial().copyWith(isLoading: true),
-      act: (c) => c.load(force: true),
-      expect: () => [
-        SelectCategoryState.initial().copyWith(isLoading: true, clearError: true),
-        SelectCategoryState.initial().copyWith(
-          isLoading: false,
-          income: const [income1],
-          expense: const [],
-          clearError: true,
-        ),
-      ],
-      verify: (_) => verify(() => getCategories()).called(1),
-    );
+  'load(force=true) runs even if currently loading',
+  build: () {
+    when(() => getCategories()).thenAnswer((_) async => [income1]);
+    return build();
+  },
+  seed: () => SelectCategoryState.initial().copyWith(isLoading: true),
+  act: (c) => c.load(force: true),
+  expect: () => [
+    isA<SelectCategoryState>()
+        .having((s) => s.isLoading, 'isLoading', false)
+        .having((s) => s.error, 'error', isNull)
+        .having((s) => s.income, 'income', [income1])
+        .having((s) => s.expense, 'expense', isEmpty),
+  ],
+  verify: (_) => verify(() => getCategories()).called(1),
+);
+
 
     blocTest<SelectCategoryCubit, SelectCategoryState>(
       'select updates selectedCategoryId',

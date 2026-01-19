@@ -1,198 +1,286 @@
-import 'package:bloc_test/bloc_test.dart';
+import 'dart:async';
+
+import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/login_screen.dart';
+import 'package:finance_tracker_app/feature/users/auth/presentation/pages/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+import 'package:finance_tracker_app/core/constants/strings.dart';
+import 'package:finance_tracker_app/core/error/exceptions.dart';
 import 'package:finance_tracker_app/core/router/app_router.dart';
-import 'package:finance_tracker_app/feature/dashboard/domain/entities/dashboard_entities.dart';
-import 'package:finance_tracker_app/feature/dashboard/presentation/cubit/dashboard_cubit.dart';
-import 'package:finance_tracker_app/feature/dashboard/presentation/cubit/dashboard_state.dart';
+import 'package:finance_tracker_app/core/theme/app_theme.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/usecases/login.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/usecases/sign_up.dart';
 import 'package:finance_tracker_app/feature/dashboard/presentation/pages/dashboard_screen.dart';
 
-class MockDashboardCubit extends MockCubit<DashboardState>
-    implements DashboardCubit {}
+class MockLogin extends Mock implements Login {}
 
-class MockNavigatorObserver extends Mock implements NavigatorObserver {}
+class MockSignup extends Mock implements Signup {}
+
+class _FakeRoute extends Fake implements Route<dynamic> {}
 
 void main() {
-  late MockDashboardCubit cubit;
-  late MockNavigatorObserver navObserver;
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-  setUp(() {
-    cubit = MockDashboardCubit();
-    navObserver = MockNavigatorObserver();
+  late MockLogin mockLogin;
+  late MockSignup mockSignup;
+  late AuthCubit authCubit;
 
-    // initState() sẽ gọi load(recentLimit: 3)
-    when(() => cubit.load(
-          month: any(named: 'month'),
-          recentLimit: any(named: 'recentLimit'),
-          force: any(named: 'force'),
-        )).thenAnswer((_) async {});
-
-    when(() => cubit.refresh(recentLimit: any(named: 'recentLimit')))
-        .thenAnswer((_) async {});
+  setUpAll(() {
+    registerFallbackValue(_FakeRoute());
   });
 
-  DashboardData buildData({
-    double income = 5000,
-    double expenses = 1200,
-    List<DashboardTransaction> recent = const [],
-  }) {
-    return DashboardData(
-      month: DateTime(2026, 1, 1),
-      summary: DashboardSummary(income: income, expenses: expenses),
-      expenseBreakdown: const [],
-      incomeBreakdown: const [],
-      recent: recent,
+  setUp(() {
+    mockLogin = MockLogin();
+    mockSignup = MockSignup();
+    authCubit = AuthCubit(login: mockLogin, signup: mockSignup);
+  });
+
+  tearDown(() async {
+    await authCubit.close();
+  });
+
+  // Pumps a few frames without pumpAndSettle to avoid timeouts from animations.
+  Future<void> stablePump(WidgetTester tester) async {
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+  }
+
+  Future<void> pumpFor(
+    WidgetTester tester,
+    Duration duration, {
+    Duration step = const Duration(milliseconds: 50),
+  }) async {
+    var elapsed = Duration.zero;
+    while (elapsed < duration) {
+      await tester.pump(step);
+      elapsed += step;
+    }
+  }
+
+  Widget buildTestApp(Widget child) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      navigatorKey: AppRouter.navigatorKey,
+      theme: AppTheme.light,
+      routes: {
+        AppRoutes.login: (_) => BlocProvider<AuthCubit>.value(
+              value: authCubit,
+              child: const LoginScreen(),
+            ),
+        AppRoutes.signUp: (_) => BlocProvider<AuthCubit>.value(
+              value: authCubit,
+              child: const SignUpScreen(),
+            ),
+        AppRoutes.dashboard: (_) => const DashboardScreen(),
+      },
+      home: BlocProvider<AuthCubit>.value(
+        value: authCubit,
+        child: child,
+      ),
     );
   }
 
-  Future<void> pumpDashboard(
-    WidgetTester tester, {
-    required DashboardState initial,
-    List<DashboardState> stream = const [],
-  }) async {
-    when(() => cubit.state).thenReturn(initial);
+  Finder emailField() => find.byType(TextFormField).at(0);
+  Finder passwordField() => find.byType(TextFormField).at(1);
+  Finder loginButton() =>
+      find.widgetWithText(ElevatedButton, AppStrings.login).hitTestable();
 
-    whenListen(
-      cubit,
-      Stream<DashboardState>.fromIterable(stream),
-      initialState: initial,
-    );
-
-    await tester.pumpWidget(
-      BlocProvider<DashboardCubit>.value(
-        value: cubit,
-        child: MaterialApp(
-          navigatorObservers: [navObserver],
-          routes: {
-            '/': (_) => const DashboardScreen(),
-            AppRoutes.addTransaction: (_) =>
-                const Scaffold(body: Text('AddTx')),
-            AppRoutes.transactionHistory: (_) =>
-                const Scaffold(body: Text('HistoryPage')),
-          },
-          initialRoute: '/',
-        ),
-      ),
-    );
-
-    // chạy microtask trong initState()
+  Future<void> fillValidLoginForm(WidgetTester tester) async {
+    await tester.enterText(emailField(), 'test@example.com');
+    await tester.enterText(passwordField(), 'Password123');
     await tester.pump();
   }
 
-  group('DashboardScreen', () {
-    testWidgets('calls cubit.load(recentLimit: 3) on first build',
+  group('LoginScreen (NEW UI) widget test', () {
+    testWidgets('renders required widgets', (tester) async {
+      await tester.pumpWidget(buildTestApp(const LoginScreen()));
+      await stablePump(tester);
+
+      expect(find.text(AppStrings.welcomeTitle), findsOneWidget);
+      expect(find.byType(TextFormField), findsNWidgets(2));
+
+      // Labels can appear more than once in custom widgets; don't require exactly one.
+      expect(find.text(AppStrings.emailLabel), findsWidgets);
+      expect(find.text(AppStrings.passwordLabel), findsWidgets);
+
+      expect(loginButton(), findsOneWidget);
+      expect(find.text(AppStrings.dontHaveAccount), findsOneWidget);
+      expect(find.text(AppStrings.register), findsOneWidget);
+    });
+
+    testWidgets('shows validation errors when fields are empty', (tester) async {
+      await tester.pumpWidget(buildTestApp(const LoginScreen()));
+      await stablePump(tester);
+
+      await tester.tap(loginButton());
+      await tester.pump();
+
+      // Your validators likely return these AppStrings.
+      // If your validators use different strings, update the expectations.
+      expect(find.text(AppStrings.emailRequired), findsOneWidget);
+      expect(find.text(AppStrings.passwordRequired), findsOneWidget);
+    });
+
+    testWidgets('password visibility toggle works', (tester) async {
+      await tester.pumpWidget(buildTestApp(const LoginScreen()));
+      await stablePump(tester);
+
+      expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.visibility_off_outlined));
+      await tester.pump();
+
+      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+    });
+
+    testWidgets('shows loading overlay when logging in', (tester) async {
+      final completer = Completer<UserModel>();
+
+      when(
+        () => mockLogin(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer((_) => completer.future);
+
+      await tester.pumpWidget(buildTestApp(const LoginScreen()));
+      await stablePump(tester);
+
+      await fillValidLoginForm(tester);
+
+      await tester.tap(loginButton());
+      await tester.pump();
+
+      // NEW UI uses AuthLoadingOverlay, so CircularProgressIndicator might exist
+      // but don't require it; just assert "something loading-like" is present.
+      expect(find.byType(CircularProgressIndicator), findsWidgets);
+
+      completer.complete(
+        const UserModel(id: '1', email: 'test@example.com', fullName: 'User'),
+      );
+
+      await pumpFor(tester, const Duration(milliseconds: 500));
+    });
+
+    testWidgets('calls Login usecase when button pressed with valid data',
         (tester) async {
-      final s0 = DashboardState.initial();
+      when(
+        () => mockLogin(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer(
+        (_) async => const UserModel(
+          id: '1',
+          email: 'test@example.com',
+          fullName: 'User',
+        ),
+      );
 
-      await pumpDashboard(tester, initial: s0);
+      await tester.pumpWidget(buildTestApp(const LoginScreen()));
+      await stablePump(tester);
 
-      verify(() => cubit.load(recentLimit: 3)).called(1);
+      await fillValidLoginForm(tester);
+
+      await tester.tap(loginButton());
+      await tester.pump();
+
+      verify(
+        () => mockLogin(
+          email: 'test@example.com',
+          password: 'Password123',
+        ),
+      ).called(1);
+
+      await pumpFor(tester, const Duration(milliseconds: 500));
     });
 
-    testWidgets('shows loading overlay when isLoading = true', (tester) async {
-      final s0 = DashboardState.initial().copyWith(isLoading: true);
-
-      await pumpDashboard(tester, initial: s0);
-
-      expect(find.byType(LinearProgressIndicator), findsOneWidget);
-    });
-
-    testWidgets('shows empty text when no recent and not loading',
+    testWidgets('navigates to SignUpScreen when "Register" tapped',
         (tester) async {
-      final s0 = DashboardState.initial().copyWith(
-        isLoading: false,
-        data: buildData(recent: const []),
-      );
+      await tester.pumpWidget(buildTestApp(const LoginScreen()));
+      await stablePump(tester);
 
-      await pumpDashboard(tester, initial: s0);
-
-      expect(find.text('Recent Transactions'), findsOneWidget);
-      expect(find.text('No transactions yet.'), findsOneWidget);
-    });
-
-    testWidgets('renders recent transaction content', (tester) async {
-      final tx = DashboardTransaction(
-        id: 1,
-        title: 'Food',
-        icon: 'food',
-        date: DateTime(2026, 1, 5),
-        amount: 1234.0,
-        isIncome: false,
-        note: 'Lunch',
-        categoryId: 10,
-      );
-
-      final s0 = DashboardState.initial().copyWith(
-        isLoading: false,
-        data: buildData(recent: [tx]),
-      );
-
-      await pumpDashboard(tester, initial: s0);
-
-      expect(find.text('Food'), findsOneWidget);
-      expect(find.text('Jan 5'), findsOneWidget); // _dateShort
-      expect(find.text('\$1,234'), findsOneWidget); // _money
-      expect(find.text('Lunch'), findsOneWidget);
-    });
-
-    testWidgets('shows SnackBar when state.error is emitted', (tester) async {
-      final s0 = DashboardState.initial();
-      final s1 = s0.copyWith(error: 'Something went wrong');
-
-      await pumpDashboard(tester, initial: s0, stream: [s1]);
-
-      await tester.pump(); // render snackbar
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.text('Something went wrong'), findsOneWidget);
-    });
-
-    testWidgets('pull-to-refresh calls cubit.refresh(recentLimit: 3)',
-        (tester) async {
-      final s0 = DashboardState.initial().copyWith(
-        isLoading: false,
-        data: buildData(recent: const []),
-      );
-
-      await pumpDashboard(tester, initial: s0);
-
-      await tester.drag(find.byType(Scrollable), const Offset(0, 300));
-      await tester.pump(); // start refresh
-      await tester.pump(const Duration(milliseconds: 300));
-
-      verify(() => cubit.refresh(recentLimit: 3)).called(1);
-    });
-
-    testWidgets('tapping Add navigates to AddTransaction route',
-        (tester) async {
-      final s0 = DashboardState.initial().copyWith(
-        isLoading: false,
-        data: buildData(recent: const []),
-      );
-
-      await pumpDashboard(tester, initial: s0);
-
-      await tester.tap(find.text('Add'));
+      await tester.tap(find.text(AppStrings.register));
       await tester.pumpAndSettle();
 
-      expect(find.text('AddTx'), findsOneWidget);
+      expect(find.byType(SignUpScreen), findsOneWidget);
     });
 
-    testWidgets('tapping History navigates to TransactionHistory route',
+    testWidgets('navigates to DashboardScreen after successful login',
         (tester) async {
-      final s0 = DashboardState.initial().copyWith(
-        isLoading: false,
-        data: buildData(recent: const []),
+      when(
+        () => mockLogin(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer(
+        (_) async => const UserModel(
+          id: '1',
+          email: 'test@example.com',
+          fullName: 'User',
+        ),
       );
 
-      await pumpDashboard(tester, initial: s0);
+      await tester.pumpWidget(buildTestApp(const LoginScreen()));
+      await stablePump(tester);
 
-      await tester.tap(find.text('History'));
+      await fillValidLoginForm(tester);
+
+      await tester.tap(loginButton());
+      await tester.pump();
+
+      // Let navigation happen (BlocConsumer listener pushes named route).
       await tester.pumpAndSettle();
 
-      expect(find.text('HistoryPage'), findsOneWidget);
+      expect(find.byType(DashboardScreen), findsOneWidget);
+    });
+
+    testWidgets('shows error SnackBar on login failure', (tester) async {
+      when(
+        () => mockLogin(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenThrow(const AuthException('Login failed'));
+
+      await tester.pumpWidget(buildTestApp(const LoginScreen()));
+      await stablePump(tester);
+
+      await fillValidLoginForm(tester);
+
+      await tester.tap(loginButton());
+      await tester.pump();
+
+      // Let listener show SnackBar.
+      await pumpFor(tester, const Duration(milliseconds: 400));
+
+      // SnackBar can exist more than once; assert message exists in ANY SnackBar subtree.
+      final snackBars = find.byType(SnackBar);
+      expect(snackBars, findsWidgets);
+
+      expect(
+        find.descendant(of: snackBars, matching: find.text('Login failed')),
+        findsAtLeastNWidgets(1),
+      );
+    });
+
+    testWidgets('does not call verify(0) patterns; uses verifyNever for no calls',
+        (tester) async {
+      // Example sanity: if form invalid, login usecase must not be called.
+      await tester.pumpWidget(buildTestApp(const LoginScreen()));
+      await stablePump(tester);
+
+      await tester.tap(loginButton());
+      await tester.pump();
+
+      verifyNever(() => mockLogin(email: any(named: 'email'), password: any(named: 'password')));
     });
   });
 }

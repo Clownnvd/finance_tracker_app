@@ -1,17 +1,18 @@
 // lib/feature/transactions/presentation/transaction_history/widgets/history_list.dart
-import 'package:finance_tracker_app/core/utils/category_icon_mapper.dart';
-import 'package:flutter/material.dart';
 
+import 'package:flutter/material.dart';
+import 'package:finance_tracker_app/core/theme/app_theme.dart';
+import 'package:finance_tracker_app/core/utils/category_icon_mapper.dart';
 
 import '../../../feature/transactions/presentation/transaction_history/helpers/history_grouping.dart';
 import '../../../feature/transactions/domain/entities/transaction_entity.dart';
+
 import 'history_item_tile.dart';
 import 'history_section_header.dart';
 
 class HistoryList extends StatefulWidget {
   final List<HistorySection> sections;
 
-  /// For resolving category display from categoryId
   final Map<int, String> categoryNameById;
   final Map<int, String> categoryIconById;
 
@@ -21,10 +22,7 @@ class HistoryList extends StatefulWidget {
 
   final String? currencySymbol;
 
-  /// Pull-to-refresh handled outside; this is only for pagination
   final VoidCallback? onLoadMore;
-
-  /// Tap item
   final void Function(TransactionEntity tx)? onItemTap;
 
   const HistoryList({
@@ -101,9 +99,14 @@ class _HistoryListState extends State<HistoryList> {
 
     return ListView.separated(
       controller: _controller,
-      padding: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        0,
+        AppSpacing.lg,
+        AppSpacing.lg,
+      ),
       itemCount: rows.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (context, index) {
         final row = rows[index];
 
@@ -111,47 +114,34 @@ class _HistoryListState extends State<HistoryList> {
           final s = row.section!;
           return HistorySectionHeader(
             title: s.title,
-            incomeTotal: s.incomeTotal,
-            expenseTotal: s.expenseTotal,
+            hideTotals: true,
             currencySymbol: widget.currencySymbol,
           );
         }
 
         if (row.kind == _RowKind.loadingMore) {
           return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 14),
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
             child: Center(child: CircularProgressIndicator()),
           );
         }
 
         final tx = row.tx!;
-
-        final categoryName =
-            widget.categoryNameById[tx.categoryId] ?? 'Unknown';
-
-        final iconKey =
-            widget.categoryIconById[tx.categoryId] ?? '';
-
+        final categoryName = widget.categoryNameById[tx.categoryId] ?? 'Unknown';
+        final iconKey = widget.categoryIconById[tx.categoryId] ?? '';
         final iconData = CategoryIconMapper.fromString(iconKey);
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: HistoryItemTile(
-            tx: tx,
-            categoryName: categoryName,
-            icon: iconData,
-            currencySymbol: widget.currencySymbol,
-            onTap: widget.onItemTap == null ? null : () => widget.onItemTap!(tx),
-          ),
+        return HistoryItemTile(
+          tx: tx,
+          categoryName: categoryName,
+          icon: iconData,
+          currencySymbol: widget.currencySymbol,
+          onTap: widget.onItemTap == null ? null : () => widget.onItemTap!(tx),
         );
       },
     );
   }
 }
-
-// =======================
-// Internal row model
-// =======================
 
 enum _RowKind { header, item, loadingMore }
 
@@ -171,38 +161,28 @@ class _LoadingMoreRow extends _Row {
   const _LoadingMoreRow() : super._(_RowKind.loadingMore);
 }
 
-// =======================
-// Simple empty/error views
-// =======================
-
 class _EmptyView extends StatelessWidget {
   const _EmptyView();
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.receipt_long_rounded, size: 44, color: theme.hintColor),
-            const SizedBox(height: 10),
+            Icon(Icons.receipt_long_rounded, size: 44, color: AppColors.neutral400),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'No transactions yet',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppTextStyles.title.copyWith(fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               'Add your first income/expense to see it here.',
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.70),
-              ),
+              style: AppTextStyles.body.copyWith(color: AppColors.neutral600),
             ),
           ],
         ),
@@ -217,33 +197,23 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 44,
-              color: theme.colorScheme.error,
-            ),
-            const SizedBox(height: 10),
+            Icon(Icons.error_outline_rounded, size: 44, color: AppColors.error),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               'Something went wrong',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppTextStyles.title.copyWith(fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.70),
-              ),
+              style: AppTextStyles.body.copyWith(color: AppColors.neutral600),
             ),
           ],
         ),
