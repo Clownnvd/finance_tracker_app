@@ -16,6 +16,18 @@ class AppConfig {
   static const int maxRetryAttempts = 2;
 
   // =======================
+  // Exponential Backoff
+  // =======================
+  /// Base delay in milliseconds (first retry waits ~1s)
+  static const int backoffBaseDelayMs = 1000;
+
+  /// Maximum delay cap in milliseconds (16s max wait)
+  static const int backoffMaxDelayMs = 16000;
+
+  /// Jitter factor (±30% randomization to avoid thundering herd)
+  static const double backoffJitterFactor = 0.3;
+
+  // =======================
   // Auth UI
   // =======================
   static const double authImageWidth = 240;

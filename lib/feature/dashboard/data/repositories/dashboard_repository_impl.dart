@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:finance_tracker_app/core/network/user_id_local_data_source.dart';
 import 'package:finance_tracker_app/feature/dashboard/data/mappers/dashboard_mappers.dart';
 import 'package:finance_tracker_app/feature/dashboard/data/models/dashboard_remote_data_source.dart';
@@ -18,29 +19,36 @@ class DashboardRepositoryImpl implements DashboardRepository {
   Future<DashboardData> getDashboardData({
     required DateTime month,
     int recentLimit = 3,
+    CancelToken? cancelToken,
   }) async {
     final uid = await _userIdLocal.getUserId();
     if (uid == null || uid.isEmpty) {
       throw Exception('Missing user_id');
     }
 
-    final summaryModel = await _remote.fetchSummaryForMonth(month);
+    final summaryModel = await _remote.fetchSummaryForMonth(
+      month,
+      cancelToken: cancelToken,
+    );
 
     final expenseModels = await _remote.fetchCategoryBreakdownForMonth(
       uid: uid,
       month: month,
       type: DashboardType.expense.apiValue,
+      cancelToken: cancelToken,
     );
 
     final incomeModels = await _remote.fetchCategoryBreakdownForMonth(
       uid: uid,
       month: month,
       type: DashboardType.income.apiValue,
+      cancelToken: cancelToken,
     );
 
     final recentModels = await _remote.fetchRecentTransactionsForMonth(
       month: month,
       limit: recentLimit,
+      cancelToken: cancelToken,
     );
 
     return DashboardData(

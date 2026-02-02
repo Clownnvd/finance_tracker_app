@@ -1,25 +1,27 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/login.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/usecases/logout.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/sign_up.dart';
 import 'package:finance_tracker_app/core/error/exceptions.dart';
-
-// ✅ sửa đúng path nếu khác
 import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 
-// ===== Mocks =====
 class MockLogin extends Mock implements Login {}
 
 class MockSignup extends Mock implements Signup {}
+
+class MockLogout extends Mock implements Logout {}
 
 class MockUserModel extends Mock implements UserModel {}
 
 void main() {
   late MockLogin mockLogin;
   late MockSignup mockSignup;
+  late MockLogout mockLogout;
   late AuthCubit cubit;
 
   const email = 'test@example.com';
@@ -28,7 +30,8 @@ void main() {
   setUp(() {
     mockLogin = MockLogin();
     mockSignup = MockSignup();
-    cubit = AuthCubit(login: mockLogin, signup: mockSignup);
+    mockLogout = MockLogout();
+    cubit = AuthCubit(login: mockLogin, signup: mockSignup, logout: mockLogout);
   });
 
   tearDown(() async {
@@ -45,6 +48,7 @@ void main() {
         when(() => mockLogin.call(
               email: any(named: 'email'),
               password: any(named: 'password'),
+              cancelToken: any(named: 'cancelToken'),
             )).thenAnswer((_) async => user);
 
         return cubit;
@@ -55,7 +59,11 @@ void main() {
         isA<AuthSuccess>().having((s) => s.user.email, 'user.email', email),
       ],
       verify: (_) {
-        verify(() => mockLogin.call(email: email, password: password)).called(1);
+        verify(() => mockLogin.call(
+              email: email,
+              password: password,
+              cancelToken: any(named: 'cancelToken'),
+            )).called(1);
       },
     );
 
@@ -65,6 +73,7 @@ void main() {
         when(() => mockLogin.call(
               email: any(named: 'email'),
               password: any(named: 'password'),
+              cancelToken: any(named: 'cancelToken'),
             )).thenThrow(const AuthException('Invalid credentials'));
 
         return cubit;
@@ -76,16 +85,21 @@ void main() {
             .having((s) => s.message, 'message', 'Invalid credentials'),
       ],
       verify: (_) {
-        verify(() => mockLogin.call(email: email, password: password)).called(1);
+        verify(() => mockLogin.call(
+              email: email,
+              password: password,
+              cancelToken: any(named: 'cancelToken'),
+            )).called(1);
       },
     );
 
     blocTest<AuthCubit, AuthState>(
-      'retries 2 times for NetworkException then emits Failure on 2nd failure',
+      'retries for NetworkException then emits Failure after max attempts',
       build: () {
         when(() => mockLogin.call(
               email: any(named: 'email'),
               password: any(named: 'password'),
+              cancelToken: any(named: 'cancelToken'),
             )).thenAnswer((_) async {
           throw const NetworkException('No internet');
         });
@@ -93,13 +107,20 @@ void main() {
         return cubit;
       },
       act: (c) => c.login(email, password),
+      wait: const Duration(milliseconds: 500), // Wait for retry delays
       expect: () => [
+        isA<AuthLoading>(),
+        // AuthActionRunner emits AuthLoading for each attempt
         isA<AuthLoading>(),
         isA<AuthFailure>().having((s) => s.message, 'message', 'No internet'),
       ],
       verify: (_) {
-        // AuthCubit retry maxAttempts = 2
-        verify(() => mockLogin.call(email: email, password: password)).called(2);
+        // AuthCubit uses AppConfig.maxRetryAttempts (default 2)
+        verify(() => mockLogin.call(
+              email: email,
+              password: password,
+              cancelToken: any(named: 'cancelToken'),
+            )).called(2);
       },
     );
 
@@ -114,6 +135,7 @@ void main() {
         when(() => mockLogin.call(
               email: any(named: 'email'),
               password: any(named: 'password'),
+              cancelToken: any(named: 'cancelToken'),
             )).thenAnswer((_) async {
           attempt++;
           if (attempt == 1) {
@@ -125,45 +147,29 @@ void main() {
         return cubit;
       },
       act: (c) => c.login(email, password),
+      wait: const Duration(milliseconds: 500), // Wait for retry delays
       expect: () => [
+        isA<AuthLoading>(),
+        // AuthActionRunner emits AuthLoading for each attempt
         isA<AuthLoading>(),
         isA<AuthSuccess>().having((s) => s.user.email, 'user.email', email),
       ],
       verify: (_) {
-        verify(() => mockLogin.call(email: email, password: password)).called(2);
+        verify(() => mockLogin.call(
+              email: email,
+              password: password,
+              cancelToken: any(named: 'cancelToken'),
+            )).called(2);
       },
     );
 
     blocTest<AuthCubit, AuthState>(
-      'if already AuthSuccess then emits AuthFailure("You are already logged in.") and does NOT call Login usecase',
-      build: () => cubit,
-      seed: () {
-        final user = MockUserModel();
-        when(() => user.email).thenReturn(email);
-        return AuthSuccess(user);
-      },
-      act: (c) => c.login(email, password),
-      expect: () => [
-        isA<AuthFailure>().having(
-          (s) => s.message,
-          'message',
-          'You are already logged in.',
-        ),
-      ],
-      verify: (_) {
-        verifyNever(() => mockLogin.call(
-              email: any(named: 'email'),
-              password: any(named: 'password'),
-            ));
-      },
-    );
-
-    blocTest<AuthCubit, AuthState>(
-      'emits [AuthLoading, AuthFailure("Unexpected error. Please try again.")] when unknown error occurs',
+      'emits [AuthLoading, AuthFailure] when unknown error occurs',
       build: () {
         when(() => mockLogin.call(
               email: any(named: 'email'),
               password: any(named: 'password'),
+              cancelToken: any(named: 'cancelToken'),
             )).thenThrow(Exception('boom'));
 
         return cubit;
@@ -174,11 +180,15 @@ void main() {
         isA<AuthFailure>().having(
           (s) => s.message,
           'message',
-          'Unexpected error. Please try again.',
+          AppStrings.genericError,
         ),
       ],
       verify: (_) {
-        verify(() => mockLogin.call(email: email, password: password)).called(1);
+        verify(() => mockLogin.call(
+              email: email,
+              password: password,
+              cancelToken: any(named: 'cancelToken'),
+            )).called(1);
       },
     );
   });

@@ -40,6 +40,7 @@ class TransactionHistoryCubit extends Cubit<TransactionHistoryState> {
         to: to,
         limit: _pageSize,
         offset: 0,
+        cancelToken: _cancelToken,
       );
 
       emit(state.copyWith(
@@ -74,6 +75,7 @@ class TransactionHistoryCubit extends Cubit<TransactionHistoryState> {
         to: to,
         limit: _pageSize,
         offset: state.items.length,
+        cancelToken: _cancelToken,
       );
 
       emit(state.copyWith(

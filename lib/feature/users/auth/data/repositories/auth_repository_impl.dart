@@ -38,13 +38,13 @@ class AuthRepositoryImpl implements AuthRepository {
     }
 
     // Auto-login after sign up
-    final token = await remote.login(
+    final tokens = await remote.login(
       email: email,
       password: password,
       cancelToken: cancelToken,
     );
 
-    await sessionLocal.saveAccessToken(token);
+    await _saveTokens(tokens);
 
     final user = await _fetchMe(cancelToken: cancelToken);
 
@@ -63,13 +63,13 @@ class AuthRepositoryImpl implements AuthRepository {
     CancelToken? cancelToken,
   }) async {
     try {
-      final token = await remote.login(
+      final tokens = await remote.login(
         email: email,
         password: password,
         cancelToken: cancelToken,
       );
 
-      await sessionLocal.saveAccessToken(token);
+      await _saveTokens(tokens);
 
       final user = await _fetchMe(cancelToken: cancelToken);
 
@@ -89,6 +89,15 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  /// Save all tokens to secure storage.
+  Future<void> _saveTokens(AuthTokens tokens) async {
+    await Future.wait([
+      sessionLocal.saveAccessToken(tokens.accessToken),
+      sessionLocal.saveRefreshToken(tokens.refreshToken),
+      sessionLocal.saveExpiresAt(tokens.expiresAt),
+    ]);
+  }
+
   Future<UserModel> _fetchMe({CancelToken? cancelToken}) async {
     final me = await remote.getMe(cancelToken: cancelToken);
     final meta = me['user_metadata'];
@@ -104,5 +113,16 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> logout({CancelToken? cancelToken}) async {
     await sessionLocal.clear();
     await userIdLocal.clear(); // ✅ clear user id too
+  }
+
+  @override
+  Future<void> refreshSession() async {
+    final refreshToken = await sessionLocal.getRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) {
+      throw const AuthException(AppStrings.sessionExpired);
+    }
+
+    final tokens = await remote.refreshToken(refreshToken: refreshToken);
+    await _saveTokens(tokens);
   }
 }

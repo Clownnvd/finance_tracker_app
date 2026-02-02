@@ -86,24 +86,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await context.read<DashboardCubit>().refresh(recentLimit: 3);
   }
 
+  Future<void> _go(String routeName) async {
+    // Dashboard vẫn nằm dưới, nên keep navIndex = Home (0) cho đúng UX
+    if (!mounted) return;
+    await Navigator.of(context).pushNamed(routeName);
+
+    // Khi quay lại, đảm bảo bottom nav vẫn đang ở Home
+    if (!mounted) return;
+    if (_navIndex != 0) setState(() => _navIndex = 0);
+  }
+
   void _onNavChanged(int index) {
+    // Home
+    if (index == 0) {
+      if (_navIndex != 0) setState(() => _navIndex = 0);
+      return;
+    }
+
+    // Add Transaction
     if (index == 1) {
-      Navigator.of(context).pushNamed(AppRoutes.addTransaction);
+      _go(AppRoutes.addTransaction);
       return;
     }
 
+    // History
     if (index == 2) {
-      Navigator.of(context).pushNamed(AppRoutes.transactionHistory);
+      _go(AppRoutes.transactionHistory);
       return;
     }
 
-    setState(() => _navIndex = index);
-
+    // Report (Monthly Report)
     if (index == 3) {
+      _go(AppRoutes.monthlyReport);
       return;
     }
 
+    // Settings
     if (index == 4) {
+      _go(AppRoutes.settings);
       return;
     }
   }

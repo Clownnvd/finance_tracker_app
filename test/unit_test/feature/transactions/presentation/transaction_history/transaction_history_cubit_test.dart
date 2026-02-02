@@ -63,6 +63,7 @@ void main() {
               to: any(named: 'to'),
               limit: any(named: 'limit'),
               offset: any(named: 'offset'),
+              cancelToken: any(named: 'cancelToken'),
             )).thenAnswer((inv) async {
           final limit = inv.namedArguments[#limit] as int;
           final offset = inv.namedArguments[#offset] as int;
@@ -94,6 +95,7 @@ void main() {
               to: any(named: 'to'),
               limit: 20,
               offset: 0,
+              cancelToken: any(named: 'cancelToken'),
             )).called(1);
       },
     );
@@ -116,6 +118,7 @@ void main() {
               to: any(named: 'to'),
               limit: 20,
               offset: 0,
+              cancelToken: any(named: 'cancelToken'),
             )).thenAnswer((_) async => items);
 
         return cubit;
@@ -143,6 +146,7 @@ void main() {
               to: any(named: 'to'),
               limit: any(named: 'limit'),
               offset: any(named: 'offset'),
+              cancelToken: any(named: 'cancelToken'),
             )).thenAnswer((_) async => []);
 
         return cubit;
@@ -155,6 +159,7 @@ void main() {
             to: any(named: 'to'),
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
+            cancelToken: any(named: 'cancelToken'),
           )),
     );
 
@@ -166,6 +171,7 @@ void main() {
               to: any(named: 'to'),
               limit: 20,
               offset: 0,
+              cancelToken: any(named: 'cancelToken'),
             )).thenThrow(Exception('boom'));
         return cubit;
       },
@@ -197,6 +203,7 @@ void main() {
             to: any(named: 'to'),
             limit: any(named: 'limit'),
             offset: any(named: 'offset'),
+            cancelToken: any(named: 'cancelToken'),
           )),
     );
 
@@ -208,6 +215,7 @@ void main() {
               to: any(named: 'to'),
               limit: 20,
               offset: 2,
+              cancelToken: any(named: 'cancelToken'),
             )).thenAnswer((_) async {
           return [
             tx(
@@ -255,6 +263,7 @@ void main() {
             to: any(named: 'to'),
             limit: 20,
             offset: 2,
+            cancelToken: any(named: 'cancelToken'),
           )).called(1),
     );
 
@@ -266,6 +275,7 @@ void main() {
               to: any(named: 'to'),
               limit: 20,
               offset: 1,
+              cancelToken: any(named: 'cancelToken'),
             )).thenThrow(Exception('boom'));
         return cubit;
       },

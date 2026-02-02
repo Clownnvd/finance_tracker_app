@@ -18,4 +18,9 @@ abstract class AuthRepository {
   Future<void> logout({
     CancelToken? cancelToken,
   });
+
+  /// Refresh the current session using stored refresh token.
+  ///
+  /// Throws [AuthException] if refresh token is missing or invalid.
+  Future<void> refreshSession();
 }

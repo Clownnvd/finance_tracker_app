@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 
 // =======================
 // AUTH SCREENS
@@ -19,11 +21,24 @@ import 'package:finance_tracker_app/feature/transactions/presentation/add_transa
 import 'package:finance_tracker_app/feature/transactions/presentation/select_category/pages/select_category_screen.dart';
 import 'package:finance_tracker_app/feature/transactions/presentation/transaction_history/pages/transaction_history_screen.dart';
 
+// =======================
+// REPORTS
+// =======================
+import 'package:finance_tracker_app/feature/monthly_report/presentation/pages/monthly_report_page.dart';
+
+// =======================
+// SETTINGS
+// =======================
+import 'package:finance_tracker_app/feature/settings/presentation/pages/settings_screen.dart';
+import 'package:finance_tracker_app/feature/settings/presentation/pages/account_security_screen.dart';
+
+// =======================
+// BUDGETS
+// =======================
+import 'package:finance_tracker_app/feature/budgets/presentation/pages/set_budget_screen.dart';
+import 'package:finance_tracker_app/feature/budgets/presentation/cubit/budgets_cubit.dart';
+
 /// Centralized route names for the application.
-///
-/// IMPORTANT:
-/// - Always add new routes here
-/// - Use these constants instead of hard-coded strings
 class AppRoutes {
   static const String welcome = '/';
   static const String login = '/login';
@@ -36,15 +51,25 @@ class AppRoutes {
   static const String transactionHistory = '/transactions/history';
   static const String addTransaction = '/transactions/add';
   static const String selectCategory = '/transactions/select-category';
+
+  // =======================
+  // REPORTS
+  // =======================
+  static const String monthlyReport = '/reports/monthly';
+
+  // =======================
+  // SETTINGS
+  // =======================
+  static const String settings = '/settings';
+  static const String accountSecurity = '/settings/account-security';
+
+  // =======================
+  // BUDGETS
+  // =======================
+  static const String setBudget = '/budgets/set';
 }
 
 /// Centralized app router.
-///
-/// Responsibilities:
-/// - Map route name → screen
-/// - Do NOT create Bloc/Cubit here
-/// - Do NOT put business logic here
-/// - Keep navigation predictable and safe
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
@@ -80,6 +105,33 @@ class AppRouter {
 
       case AppRoutes.selectCategory:
         return _material(const SelectCategoryScreen(), settings);
+
+      // =======================
+      // REPORTS
+      // =======================
+      case AppRoutes.monthlyReport:
+        return _material(const MonthlyReportPage(), settings);
+
+      // =======================
+      // SETTINGS
+      // =======================
+      case AppRoutes.settings:
+        return _material(const SettingsScreen(), settings);
+
+      case AppRoutes.accountSecurity:
+        return _material(const AccountSecurityScreen(), settings);
+
+      // =======================
+      // BUDGETS
+      // =======================
+      case AppRoutes.setBudget:
+        return _material(
+          BlocProvider<BudgetsCubit>(
+            create: (_) => GetIt.I<BudgetsCubit>(),
+            child: const SetBudgetScreen(),
+          ),
+          settings,
+        );
 
       // =======================
       // FALLBACK

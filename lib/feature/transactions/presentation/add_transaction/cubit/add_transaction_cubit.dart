@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:finance_tracker_app/core/error/exception_mapper.dart';
 import 'package:finance_tracker_app/core/network/user_id_local_data_source.dart';
@@ -11,6 +12,8 @@ class AddTransactionCubit extends Cubit<AddTransactionState> {
   final AddTransaction _addTransaction;
   final UserIdLocalDataSource _userIdLocal;
 
+  CancelToken? _cancelToken;
+
   AddTransactionCubit({
     required AddTransaction addTransaction,
     required UserIdLocalDataSource userIdLocal,
@@ -18,14 +21,11 @@ class AddTransactionCubit extends Cubit<AddTransactionState> {
         _userIdLocal = userIdLocal,
         super(AddTransactionState.initial());
 
-  /// Category drives the transaction type.
-  /// Selecting an INCOME category => tx.type becomes INCOME automatically.
-  /// Selecting an EXPENSE category => tx.type becomes EXPENSE automatically.
   void setCategory(CategoryEntity category) {
     emit(
       state.copyWith(
         category: category,
-        type: category.type, // ✅ infer type from category
+        type: category.type,
         clearError: true,
       ),
     );
@@ -71,6 +71,9 @@ class AddTransactionCubit extends Cubit<AddTransactionState> {
       return false;
     }
 
+    _cancelToken?.cancel();
+    _cancelToken = CancelToken();
+
     emit(state.copyWith(isLoading: true, clearError: true));
 
     try {
@@ -86,17 +89,24 @@ class AddTransactionCubit extends Cubit<AddTransactionState> {
 
       final tx = TransactionEntity(
         userId: uid,
-        type: category.type, // ✅ always trust category.type
+        type: category.type,
         amount: state.amount,
         date: state.date,
         note: state.note.trim().isEmpty ? null : state.note.trim(),
         categoryId: category.id,
       );
 
-      await _addTransaction(tx);
+      await _addTransaction(tx, cancelToken: _cancelToken);
 
       emit(AddTransactionState.initial());
       return true;
+    } on DioException catch (e) {
+      if (CancelToken.isCancel(e)) return false;
+      emit(state.copyWith(
+        isLoading: false,
+        error: ExceptionMapper.map(e).toString(),
+      ));
+      return false;
     } catch (e) {
       emit(state.copyWith(
         isLoading: false,
@@ -104,5 +114,11 @@ class AddTransactionCubit extends Cubit<AddTransactionState> {
       ));
       return false;
     }
+  }
+
+  @override
+  Future<void> close() {
+    _cancelToken?.cancel();
+    return super.close();
   }
 }

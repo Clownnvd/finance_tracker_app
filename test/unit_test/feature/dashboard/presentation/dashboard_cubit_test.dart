@@ -70,6 +70,7 @@ void main() {
       when(() => mockUsecase(
             month: any(named: 'month'),
             recentLimit: any(named: 'recentLimit'),
+            cancelToken: any(named: 'cancelToken'),
           )).thenAnswer((invocation) async {
         final m = invocation.namedArguments[#month] as DateTime;
         return fakeData(month: m);
@@ -90,7 +91,7 @@ void main() {
           .having((s) => s.month, 'month', DateTime(2026, 1, 1)),
     ],
     verify: (_) {
-      verify(() => mockUsecase(month: DateTime(2026, 1, 1), recentLimit: 3))
+      verify(() => mockUsecase(month: DateTime(2026, 1, 1), recentLimit: 3, cancelToken: any(named: 'cancelToken')))
           .called(1);
       verifyNoMoreInteractions(mockUsecase);
     },
@@ -102,6 +103,7 @@ void main() {
       when(() => mockUsecase(
             month: any(named: 'month'),
             recentLimit: any(named: 'recentLimit'),
+            cancelToken: any(named: 'cancelToken'),
           )).thenThrow(Exception('boom'));
 
       return DashboardCubit(getDashboardData: mockUsecase);
@@ -125,6 +127,7 @@ void main() {
       when(() => mockUsecase(
             month: any(named: 'month'),
             recentLimit: any(named: 'recentLimit'),
+            cancelToken: any(named: 'cancelToken'),
           )).thenAnswer((_) async => fakeData(month: DateTime(2026, 1, 1)));
 
       final cubit = DashboardCubit(getDashboardData: mockUsecase);
@@ -133,7 +136,7 @@ void main() {
     },
     act: (cubit) => cubit.prevMonth(recentLimit: 3),
     verify: (_) {
-      verify(() => mockUsecase(month: DateTime(2026, 1, 1), recentLimit: 3))
+      verify(() => mockUsecase(month: DateTime(2026, 1, 1), recentLimit: 3, cancelToken: any(named: 'cancelToken')))
           .called(1);
     },
   );
@@ -144,6 +147,7 @@ void main() {
       when(() => mockUsecase(
             month: any(named: 'month'),
             recentLimit: any(named: 'recentLimit'),
+            cancelToken: any(named: 'cancelToken'),
           )).thenAnswer((_) async => fakeData(month: DateTime(2026, 2, 1)));
 
       final cubit = DashboardCubit(getDashboardData: mockUsecase);
@@ -151,7 +155,7 @@ void main() {
     },
     act: (cubit) => cubit.nextMonth(recentLimit: 3),
     verify: (_) {
-      verify(() => mockUsecase(month: DateTime(2026, 2, 1), recentLimit: 3))
+      verify(() => mockUsecase(month: DateTime(2026, 2, 1), recentLimit: 3, cancelToken: any(named: 'cancelToken')))
           .called(1);
     },
   );
@@ -162,6 +166,7 @@ void main() {
       when(() => mockUsecase(
             month: any(named: 'month'),
             recentLimit: any(named: 'recentLimit'),
+            cancelToken: any(named: 'cancelToken'),
           )).thenAnswer((_) async => fakeData(month: DateTime(2026, 1, 1)));
 
       final cubit = DashboardCubit(getDashboardData: mockUsecase);
@@ -173,7 +178,7 @@ void main() {
     },
     act: (cubit) => cubit.refresh(recentLimit: 3),
     verify: (_) {
-      verify(() => mockUsecase(month: DateTime(2026, 1, 1), recentLimit: 3))
+      verify(() => mockUsecase(month: DateTime(2026, 1, 1), recentLimit: 3, cancelToken: any(named: 'cancelToken')))
           .called(1);
     },
   );

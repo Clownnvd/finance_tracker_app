@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:finance_tracker_app/core/error/exceptions.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/login.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/usecases/logout.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/sign_up.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
@@ -13,6 +14,8 @@ import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_s
 class MockLogin extends Mock implements Login {}
 
 class MockSignup extends Mock implements Signup {}
+
+class MockLogout extends Mock implements Logout {}
 
 class _FakeCancelToken extends Fake implements CancelToken {}
 
@@ -27,6 +30,7 @@ void main() {
   build: () {
     final login = MockLogin();
     final signup = MockSignup();
+    final logout = MockLogout();
 
     when(() => login(
           email: any(named: 'email'),
@@ -34,7 +38,7 @@ void main() {
           cancelToken: any(named: 'cancelToken'),
         )).thenThrow(const NetworkException('Timeout'));
 
-    return AuthCubit(login: login, signup: signup);
+    return AuthCubit(login: login, signup: signup, logout: logout);
   },
   act: (cubit) => cubit.login('a@b.com', '12345678'),
   expect: () => [
@@ -56,6 +60,7 @@ void main() {
       build: () {
         final login = MockLogin();
         final signup = MockSignup();
+        final logout = MockLogout();
 
         when(() => login(
               email: any(named: 'email'),
@@ -69,7 +74,7 @@ void main() {
           ),
         );
 
-        return AuthCubit(login: login, signup: signup);
+        return AuthCubit(login: login, signup: signup, logout: logout);
       },
       act: (cubit) => cubit.login('a@b.com', '12345678'),
       expect: () => [

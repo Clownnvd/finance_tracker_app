@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:finance_tracker_app/core/error/exception_mapper.dart';
 import 'package:finance_tracker_app/core/error/exceptions.dart';
 import 'package:finance_tracker_app/core/network/user_id_local_data_source.dart';
@@ -7,8 +8,8 @@ import 'package:finance_tracker_app/feature/transactions/domain/entities/transac
 import 'package:finance_tracker_app/feature/transactions/domain/repositories/transactions_repository.dart';
 
 import '../datasources/transactions_remote_data_source.dart';
-import '../models/category_model.dart'; // brings CategoryModelX.toEntity()
-import '../models/transaction_model.dart'; // brings TransactionModelX.fromEntity + toEntity
+import '../models/category_model.dart';
+import '../models/transaction_model.dart';
 
 class TransactionsRepositoryImpl implements TransactionsRepository {
   final TransactionsRemoteDataSource _remote;
@@ -21,9 +22,9 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
         _userIdLocal = userIdLocal;
 
   @override
-  Future<List<CategoryEntity>> getCategories() async {
+  Future<List<CategoryEntity>> getCategories({CancelToken? cancelToken}) async {
     try {
-      final models = await _remote.getCategories();
+      final models = await _remote.getCategories(cancelToken: cancelToken);
       return models.map((m) => m.toEntity()).toList(growable: false);
     } catch (e) {
       throw ExceptionMapper.map(e);
@@ -31,11 +32,13 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
   }
 
   @override
-  Future<void> addTransaction(TransactionEntity tx) async {
+  Future<void> addTransaction(
+    TransactionEntity tx, {
+    CancelToken? cancelToken,
+  }) async {
     try {
       final userId = await _requireUserId();
 
-      // Ensure user context is attached before going to data layer.
       final txWithUser = TransactionEntity(
         id: tx.id,
         userId: userId,
@@ -47,18 +50,19 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
       );
 
       final model = TransactionModelX.fromEntity(txWithUser);
-      await _remote.addTransaction(model);
+      await _remote.addTransaction(model, cancelToken: cancelToken);
     } catch (e) {
       throw ExceptionMapper.map(e);
     }
   }
 
-  /// Transaction history (domain entities) for current user.
+  @override
   Future<List<TransactionEntity>> getTransactionHistory({
     DateTime? from,
     DateTime? to,
     int limit = 50,
     int offset = 0,
+    CancelToken? cancelToken,
   }) async {
     try {
       final userId = await _requireUserId();
@@ -69,6 +73,7 @@ class TransactionsRepositoryImpl implements TransactionsRepository {
         to: to,
         limit: limit,
         offset: offset,
+        cancelToken: cancelToken,
       );
 
       return models.map((m) => m.toEntity()).toList(growable: false);

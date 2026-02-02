@@ -20,6 +20,36 @@ class SignUpResult {
   });
 }
 
+/// Token response from Supabase Auth.
+///
+/// Contains both access and refresh tokens for session management.
+class AuthTokens {
+  final String accessToken;
+  final String refreshToken;
+  final int expiresAt; // epoch seconds
+
+  const AuthTokens({
+    required this.accessToken,
+    required this.refreshToken,
+    required this.expiresAt,
+  });
+
+  /// Parse from Supabase auth response JSON.
+  factory AuthTokens.fromJson(Map<String, dynamic> json) {
+    final accessToken = (json['access_token'] ?? '').toString().trim();
+    final refreshToken = (json['refresh_token'] ?? '').toString().trim();
+    final expiresAt = json['expires_at'] as int? ?? 0;
+
+    return AuthTokens(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      expiresAt: expiresAt,
+    );
+  }
+
+  bool get isValid => accessToken.isNotEmpty && refreshToken.isNotEmpty;
+}
+
 /// Contract for authentication-related remote operations.
 ///
 /// This data source communicates directly with Supabase Auth APIs.
@@ -31,9 +61,17 @@ abstract class AuthRemoteDataSource {
     CancelToken? cancelToken,
   });
 
-  Future<String> login({
+  Future<AuthTokens> login({
     required String email,
     required String password,
+    CancelToken? cancelToken,
+  });
+
+  /// Refresh session using refresh token.
+  ///
+  /// Returns new [AuthTokens] if successful.
+  Future<AuthTokens> refreshToken({
+    required String refreshToken,
     CancelToken? cancelToken,
   });
 
@@ -98,7 +136,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<String> login({
+  Future<AuthTokens> login({
     required String email,
     required String password,
     CancelToken? cancelToken,
@@ -111,15 +149,42 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       final data = res.data;
-      final token = data is Map<String, dynamic>
-          ? (data['access_token'] ?? '').toString().trim()
-          : '';
-
-      if (token.isEmpty) {
+      if (data is! Map<String, dynamic>) {
         throw const ServerException(AppStrings.genericError);
       }
 
-      return token;
+      final tokens = AuthTokens.fromJson(data);
+      if (!tokens.isValid) {
+        throw const ServerException(AppStrings.genericError);
+      }
+
+      return tokens;
+    });
+  }
+
+  @override
+  Future<AuthTokens> refreshToken({
+    required String refreshToken,
+    CancelToken? cancelToken,
+  }) {
+    return _guard(() async {
+      final res = await dio.post(
+        SupabaseEndpoints.authTokenRefresh,
+        data: {'refresh_token': refreshToken},
+        cancelToken: cancelToken,
+      );
+
+      final data = res.data;
+      if (data is! Map<String, dynamic>) {
+        throw const ServerException(AppStrings.genericError);
+      }
+
+      final tokens = AuthTokens.fromJson(data);
+      if (!tokens.isValid) {
+        throw const ServerException(AppStrings.genericError);
+      }
+
+      return tokens;
     });
   }
 

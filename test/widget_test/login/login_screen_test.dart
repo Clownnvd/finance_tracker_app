@@ -18,6 +18,7 @@ import 'package:finance_tracker_app/feature/dashboard/presentation/cubit/dashboa
 
 import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/login.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/usecases/logout.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/usecases/sign_up.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
@@ -28,6 +29,8 @@ import 'package:finance_tracker_app/shared/widgets/auth_ui.dart';
 class MockLogin extends Mock implements Login {}
 
 class MockSignup extends Mock implements Signup {}
+
+class MockLogout extends Mock implements Logout {}
 
 class MockAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
@@ -114,6 +117,7 @@ void main() {
 
   late MockLogin mockLogin;
   late MockSignup mockSignup;
+  late MockLogout mockLogout;
 
   late MockAuthCubit cubit;
   late MockDashboardCubit dashboardCubit;
@@ -131,6 +135,7 @@ void main() {
   setUp(() {
     mockLogin = MockLogin();
     mockSignup = MockSignup();
+    mockLogout = MockLogout();
 
     cubit = MockAuthCubit();
     dashboardCubit = MockDashboardCubit();
@@ -361,7 +366,7 @@ void main() {
 
   group('AuthCubit (unit-ish) - login usecase wiring', () {
     test('AuthCubit.login calls Login usecase with cancelToken', () async {
-      final real = AuthCubit(login: mockLogin, signup: mockSignup);
+      final real = AuthCubit(login: mockLogin, signup: mockSignup, logout: mockLogout);
 
       when(
         () => mockLogin(
@@ -401,7 +406,7 @@ void main() {
           ),
         ).thenThrow(const AuthException('Login failed'));
 
-        return AuthCubit(login: mockLogin, signup: mockSignup);
+        return AuthCubit(login: mockLogin, signup: mockSignup, logout: mockLogout);
       },
       act: (c) async {
         await c.login('test@example.com', 'Password123');

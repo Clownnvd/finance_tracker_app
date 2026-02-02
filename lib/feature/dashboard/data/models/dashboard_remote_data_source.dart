@@ -22,15 +22,19 @@ class DashboardRemoteDataSource {
   DateTime _monthStart(DateTime d) => DateTime(d.year, d.month, 1);
   DateTime _monthEnd(DateTime d) => DateTime(d.year, d.month + 1, 0);
 
-  Future<DashboardSummaryModel> fetchSummaryForMonth(DateTime month) async {
+  Future<DashboardSummaryModel> fetchSummaryForMonth(
+    DateTime month, {
+    CancelToken? cancelToken,
+  }) async {
     final start = _monthStart(month);
 
     final res = await _dio.get(
-      SupabaseEndpoints.vMonthTotals, // ✅ dùng constant (không table('...') nữa)
+      SupabaseEndpoints.vMonthTotals,
       queryParameters: {
         'select': 'type,month,total',
         'month': 'eq.${_dateOnly(start)}',
       },
+      cancelToken: cancelToken,
     );
 
     return DashboardSummaryModel.fromMonthTotals(res.data as List<dynamic>);
@@ -39,6 +43,7 @@ class DashboardRemoteDataSource {
   Future<List<DashboardTransactionModel>> fetchRecentTransactionsForMonth({
     required DateTime month,
     int limit = 20,
+    CancelToken? cancelToken,
   }) async {
     final start = _monthStart(month);
     final end = _monthEnd(month);
@@ -52,11 +57,11 @@ class DashboardRemoteDataSource {
         'order': 'date.desc',
         'limit': limit,
       },
+      cancelToken: cancelToken,
     );
 
     final list = (res.data as List).cast<Map<String, dynamic>>();
 
-    // ✅ MUST: fromApi (parse categories(name,icon))
     return list.map(DashboardTransactionModel.fromApi).toList();
   }
 
@@ -64,23 +69,24 @@ class DashboardRemoteDataSource {
     required String uid,
     required DateTime month,
     required String type,
+    CancelToken? cancelToken,
   }) async {
     final start = _monthStart(month);
     final end = _monthEnd(month);
 
     final res = await _dio.post(
-      SupabaseEndpoints.rpcCategoryTotals, // ✅ dùng constant
+      SupabaseEndpoints.rpcCategoryTotals,
       data: {
         'uid': uid,
         'start_date': _dateOnly(start),
         'end_date': _dateOnly(end),
         'cat_type': type,
       },
+      cancelToken: cancelToken,
     );
 
     final list = (res.data as List).cast<Map<String, dynamic>>();
 
-    // ✅ RPC trả đúng shape category_id, name, total, percent
     return list.map(DashboardCategoryBreakdownModel.fromApi).toList();
   }
 }

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:finance_tracker_app/core/error/exceptions.dart';
 
 import '../entities/transaction_entity.dart';
@@ -8,9 +9,9 @@ class AddTransaction {
 
   const AddTransaction(this._repo);
 
-  Future<void> call(TransactionEntity tx) async {
+  Future<void> call(TransactionEntity tx, {CancelToken? cancelToken}) async {
     _validate(tx);
-    await _repo.addTransaction(tx);
+    await _repo.addTransaction(tx, cancelToken: cancelToken);
   }
 
   void _validate(TransactionEntity tx) {

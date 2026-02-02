@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:finance_tracker_app/feature/dashboard/domain/entities/dashboard_entities.dart';
 import 'package:finance_tracker_app/feature/dashboard/domain/repositories/dashboard_repository.dart';
 
@@ -9,10 +10,12 @@ class GetDashboardData {
   Future<DashboardData> call({
     required DateTime month,
     int recentLimit = 3,
+    CancelToken? cancelToken,
   }) {
     return _repo.getDashboardData(
       month: month,
       recentLimit: recentLimit,
+      cancelToken: cancelToken,
     );
   }
 }

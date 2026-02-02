@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
+import 'package:finance_tracker_app/feature/users/auth/domain/usecases/logout.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_cubit.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/cubit/auth_state.dart';
 import 'package:finance_tracker_app/feature/users/auth/presentation/pages/sign_up_screen.dart';
@@ -38,7 +39,16 @@ class _DummyAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<UserModel> Logout({CancelToken? cancelToken}) {
+    throw UnimplementedError();
+  }
+
+
+  @override
   Future<void> logout({CancelToken? cancelToken}) async {}
+
+  @override
+  Future<void> refreshSession({CancelToken? cancelToken}) async {}
 }
 
 class _DummyLogin extends Login {
@@ -68,8 +78,16 @@ class _DummySignup extends Signup {
   }
 }
 
+class _DummyLogout extends Logout {
+  _DummyLogout() : super(_DummyAuthRepository());
+  @override
+  Future<void> call({CancelToken? cancelToken}) {
+    throw UnimplementedError();
+  }
+}
+
 class _SuccessAuthCubit extends AuthCubit {
-  _SuccessAuthCubit() : super(login: _DummyLogin(), signup: _DummySignup());
+  _SuccessAuthCubit() : super(login: _DummyLogin(), signup: _DummySignup(), logout: _DummyLogout());
 
   @override
   Future<void> signup(String fullName, String email, String password) async {
@@ -86,7 +104,7 @@ class _ErrorAuthCubit extends AuthCubit {
   final String message;
 
   _ErrorAuthCubit(this.message)
-      : super(login: _DummyLogin(), signup: _DummySignup());
+      : super(login: _DummyLogin(), signup: _DummySignup(), logout: _DummyLogout());
 
   @override
   Future<void> signup(String fullName, String email, String password) async {

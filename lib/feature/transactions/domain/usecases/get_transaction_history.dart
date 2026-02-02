@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../entities/transaction_entity.dart';
 import '../repositories/transactions_repository.dart';
 
@@ -14,28 +16,29 @@ class GetTransactionHistory {
 
   /// Fetches transactions with optional date range and pagination.
   ///
-  /// [userId]      - Required user identifier
   /// [from]        - Optional start date (inclusive)
   /// [to]          - Optional end date (inclusive)
   /// [limit]       - Max number of records (default 50)
   /// [offset]      - Pagination offset (default 0)
+  /// [cancelToken] - Optional token to cancel the request
   ///
   /// Throws:
   /// - NetworkException
   /// - AuthException
   /// - ServerException
   Future<List<TransactionEntity>> call({
-    required String userId,
     DateTime? from,
     DateTime? to,
     int limit = 50,
     int offset = 0,
+    CancelToken? cancelToken,
   }) {
     return _repository.getTransactionHistory(
       from: from,
       to: to,
       limit: limit,
       offset: offset,
+      cancelToken: cancelToken,
     );
   }
 }

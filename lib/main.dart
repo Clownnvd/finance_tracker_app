@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:finance_tracker_app/feature/monthly_report/presentation/cubit/monthly_report_cubit.dart';
+import 'package:finance_tracker_app/feature/settings/presentation/cubit/settings_cubit.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode, PlatformDispatcher;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,6 +17,7 @@ import 'package:finance_tracker_app/feature/dashboard/presentation/cubit/dashboa
 import 'package:finance_tracker_app/feature/transactions/presentation/select_category/cubit/select_category_cubit.dart';
 import 'package:finance_tracker_app/feature/transactions/presentation/add_transaction/cubit/add_transaction_cubit.dart';
 import 'package:finance_tracker_app/feature/transactions/presentation/transaction_history/cubit/transaction_history_cubit.dart';
+import 'package:finance_tracker_app/feature/budgets/presentation/cubit/budgets_cubit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -100,6 +103,9 @@ class AppRoot extends StatelessWidget {
         BlocProvider<SelectCategoryCubit>(create: (_) => getIt<SelectCategoryCubit>()),
         BlocProvider<AddTransactionCubit>(create: (_) => getIt<AddTransactionCubit>()),
         BlocProvider<TransactionHistoryCubit>(create: (_) => getIt<TransactionHistoryCubit>()),
+        BlocProvider<MonthlyReportCubit>(create: (_) => getIt<MonthlyReportCubit>()),
+        BlocProvider<SettingsCubit>(create: (_) => getIt<SettingsCubit>()),
+        BlocProvider<BudgetsCubit>(create: (_) => getIt<BudgetsCubit>()),
       ],
       child: const MyApp(),
     );

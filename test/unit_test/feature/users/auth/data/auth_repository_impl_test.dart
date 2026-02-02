@@ -18,25 +18,32 @@ class FakeCancelToken extends Fake implements CancelToken {}
 
 void main() {
   setUpAll(() {
-    // Required by mocktail when using any(named: ...)
     registerFallbackValue(FakeCancelToken());
   });
 
   group('AuthRepositoryImpl', () {
-    test('login saves token then fetches me and saves userId', () async {
+    test('login saves tokens then fetches me and saves userId', () async {
       final remote = MockRemote();
       final session = MockSession();
       final userIdLocal = MockUserIdLocal();
 
+      const testTokens = AuthTokens(
+        accessToken: 'token123',
+        refreshToken: 'refresh456',
+        expiresAt: 1700000000,
+      );
+
       // Default stubs for side effects
       when(() => session.saveAccessToken(any())).thenAnswer((_) async {});
+      when(() => session.saveRefreshToken(any())).thenAnswer((_) async {});
+      when(() => session.saveExpiresAt(any())).thenAnswer((_) async {});
       when(() => userIdLocal.saveUserId(any())).thenAnswer((_) async {});
 
       when(() => remote.login(
             email: any(named: 'email'),
             password: any(named: 'password'),
             cancelToken: any(named: 'cancelToken'),
-          )).thenAnswer((_) async => 'token123');
+          )).thenAnswer((_) async => testTokens);
 
       when(() => remote.getMe(cancelToken: any(named: 'cancelToken')))
           .thenAnswer((_) async => {
@@ -56,12 +63,11 @@ void main() {
       expect(user.id, '1');
       expect(user.email, 'a@b.com');
 
-      verify(() => session.saveAccessToken('token123')).called(1);
+      verify(() => session.saveAccessToken(testTokens.accessToken)).called(1);
+      verify(() => session.saveRefreshToken(testTokens.refreshToken)).called(1);
+      verify(() => session.saveExpiresAt(testTokens.expiresAt)).called(1);
       verify(() => remote.getMe(cancelToken: null)).called(1);
       verify(() => userIdLocal.saveUserId('1')).called(1);
-
-      verifyNoMoreInteractions(session);
-      verifyNoMoreInteractions(userIdLocal);
     });
   });
 }

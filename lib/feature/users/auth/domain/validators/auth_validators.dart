@@ -8,16 +8,16 @@ class AuthValidators {
     final e = _trim(email);
 
     if (e.isEmpty) {
-      throw ValidationException(AppStrings.emailRequired);
+      throw const ValidationException(AppStrings.emailRequired);
     }
 
     if (!e.contains('@') || !e.contains('.')) {
-      throw ValidationException(AppStrings.invalidEmailFormat);
+      throw const ValidationException(AppStrings.invalidEmailFormat);
     }
 
     final parts = e.split('@');
     if (parts.length != 2 || parts[1].trim().isEmpty) {
-      throw ValidationException(AppStrings.invalidEmailFormat);
+      throw const ValidationException(AppStrings.invalidEmailFormat);
     }
 
     return e;
@@ -25,11 +25,11 @@ class AuthValidators {
 
   static void validatePassword(String password) {
     if (password.isEmpty) {
-      throw ValidationException(AppStrings.passwordRequired);
+      throw const ValidationException(AppStrings.passwordRequired);
     }
 
     if (password.length < 8) {
-      throw ValidationException(AppStrings.passwordMinLength8);
+      throw const ValidationException(AppStrings.passwordMinLength8);
     }
   }
 
@@ -37,7 +37,7 @@ class AuthValidators {
     final n = _trim(fullName);
 
     if (n.isEmpty) {
-      throw ValidationException(AppStrings.fullNameRequired);
+      throw const ValidationException(AppStrings.fullNameRequired);
     }
 
     return n;

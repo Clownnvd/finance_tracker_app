@@ -57,6 +57,7 @@ class AppStrings {
   static const loginFailed = 'Login failed';
   static const signupFailed = 'Signup failed';
   static const genericError = 'Something went wrong';
+  static const sessionExpired = 'Session expired. Please login again.';
 
   // Dashboard
   static const dashboardTitle = 'Dashboard';

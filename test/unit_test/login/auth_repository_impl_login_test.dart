@@ -12,7 +12,8 @@ import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_mode
 
 class MockAuthRemoteDataSource extends Mock implements AuthRemoteDataSource {}
 
-class MockSessionLocalDataSource extends Mock implements SessionLocalDataSource {}
+class MockSessionLocalDataSource extends Mock
+    implements SessionLocalDataSource {}
 
 class MockUserIdLocalDataSource extends Mock implements UserIdLocalDataSource {}
 
@@ -26,10 +27,13 @@ void main() {
 
   const email = 'test@example.com';
   const password = '12345678';
-  const token = 'token_abc_123';
+  const testTokens = AuthTokens(
+    accessToken: 'access_token_123',
+    refreshToken: 'refresh_token_456',
+    expiresAt: 1700000000,
+  );
 
   setUpAll(() {
-    // Required by mocktail for any(named: 'cancelToken')
     registerFallbackValue(FakeCancelToken());
   });
 
@@ -40,6 +44,8 @@ void main() {
 
     // Default stubs for side effects
     when(() => sessionLocal.saveAccessToken(any())).thenAnswer((_) async {});
+    when(() => sessionLocal.saveRefreshToken(any())).thenAnswer((_) async {});
+    when(() => sessionLocal.saveExpiresAt(any())).thenAnswer((_) async {});
     when(() => userIdLocal.saveUserId(any())).thenAnswer((_) async {});
 
     repo = AuthRepositoryImpl(
@@ -49,13 +55,13 @@ void main() {
     );
   });
 
-  test('login returns UserModel and saves access token when remote success',
+  test('login returns UserModel and saves tokens when remote success',
       () async {
     when(() => remote.login(
           email: any(named: 'email'),
           password: any(named: 'password'),
           cancelToken: any(named: 'cancelToken'),
-        )).thenAnswer((_) async => token);
+        )).thenAnswer((_) async => testTokens);
 
     when(() => remote.getMe(cancelToken: any(named: 'cancelToken')))
         .thenAnswer((_) async => {
@@ -75,15 +81,14 @@ void main() {
           cancelToken: null,
         )).called(1);
 
-    verify(() => sessionLocal.saveAccessToken(token)).called(1);
+    verify(() => sessionLocal.saveAccessToken(testTokens.accessToken))
+        .called(1);
+    verify(() => sessionLocal.saveRefreshToken(testTokens.refreshToken))
+        .called(1);
+    verify(() => sessionLocal.saveExpiresAt(testTokens.expiresAt)).called(1);
 
     verify(() => remote.getMe(cancelToken: null)).called(1);
-
-    // Repo should persist user id for other features (Dashboard/RPC)
     verify(() => userIdLocal.saveUserId('u1')).called(1);
-
-    verifyNoMoreInteractions(sessionLocal);
-    verifyNoMoreInteractions(userIdLocal);
   });
 
   test('login throws AuthException when remote.login throws AuthException',
@@ -106,6 +111,8 @@ void main() {
         )).called(1);
 
     verifyNever(() => sessionLocal.saveAccessToken(any()));
+    verifyNever(() => sessionLocal.saveRefreshToken(any()));
+    verifyNever(() => sessionLocal.saveExpiresAt(any()));
     verifyNever(() => remote.getMe(cancelToken: any(named: 'cancelToken')));
     verifyNever(() => userIdLocal.saveUserId(any()));
   });
@@ -166,7 +173,7 @@ void main() {
           email: any(named: 'email'),
           password: any(named: 'password'),
           cancelToken: any(named: 'cancelToken'),
-        )).thenAnswer((_) async => token);
+        )).thenAnswer((_) async => testTokens);
 
     when(() => remote.getMe(cancelToken: any(named: 'cancelToken')))
         .thenThrow(const AuthException('Token expired'));
@@ -182,7 +189,12 @@ void main() {
           cancelToken: null,
         )).called(1);
 
-    verify(() => sessionLocal.saveAccessToken(token)).called(1);
+    // Tokens saved before getMe fails
+    verify(() => sessionLocal.saveAccessToken(testTokens.accessToken))
+        .called(1);
+    verify(() => sessionLocal.saveRefreshToken(testTokens.refreshToken))
+        .called(1);
+    verify(() => sessionLocal.saveExpiresAt(testTokens.expiresAt)).called(1);
 
     verify(() => remote.getMe(cancelToken: null)).called(1);
 

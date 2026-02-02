@@ -10,14 +10,12 @@ import 'package:finance_tracker_app/feature/users/auth/data/models/auth_remote_d
 import 'package:finance_tracker_app/feature/users/auth/data/repositories/auth_repository_impl.dart';
 import 'package:finance_tracker_app/feature/users/auth/domain/entities/user_model.dart';
 
-class MockAuthRemoteDataSource extends Mock
-    implements AuthRemoteDataSource {}
+class MockAuthRemoteDataSource extends Mock implements AuthRemoteDataSource {}
 
 class MockSessionLocalDataSource extends Mock
     implements SessionLocalDataSource {}
 
-class MockUserIdLocalDataSource extends Mock
-    implements UserIdLocalDataSource {}
+class MockUserIdLocalDataSource extends Mock implements UserIdLocalDataSource {}
 
 class FakeCancelToken extends Fake implements CancelToken {}
 
@@ -30,6 +28,12 @@ void main() {
   const email = 'test@example.com';
   const password = 'Password123';
   const fullName = 'Test User';
+
+  const testTokens = AuthTokens(
+    accessToken: 'access-token-123',
+    refreshToken: 'refresh-token-456',
+    expiresAt: 1700000000,
+  );
 
   final meJson = <String, dynamic>{
     'id': 'user-1',
@@ -44,7 +48,6 @@ void main() {
   );
 
   setUpAll(() {
-    // Required by mocktail when using any(named: ...)
     registerFallbackValue(FakeCancelToken());
   });
 
@@ -54,11 +57,11 @@ void main() {
     userIdLocal = MockUserIdLocalDataSource();
 
     // Common stubs
-    when(() => sessionLocal.saveAccessToken(any()))
-        .thenAnswer((_) async {});
+    when(() => sessionLocal.saveAccessToken(any())).thenAnswer((_) async {});
+    when(() => sessionLocal.saveRefreshToken(any())).thenAnswer((_) async {});
+    when(() => sessionLocal.saveExpiresAt(any())).thenAnswer((_) async {});
     when(() => sessionLocal.clear()).thenAnswer((_) async {});
-    when(() => userIdLocal.saveUserId(any()))
-        .thenAnswer((_) async {});
+    when(() => userIdLocal.saveUserId(any())).thenAnswer((_) async {});
     when(() => userIdLocal.clear()).thenAnswer((_) async {});
 
     repo = AuthRepositoryImpl(
@@ -71,7 +74,7 @@ void main() {
   group('signup', () {
     test(
       'signup success (no email verification) '
-      '-> signup -> login -> save token -> getMe -> save userId',
+      '-> signup -> login -> save tokens -> getMe -> save userId',
       () async {
         when(() => remote.signup(
               fullName: any(named: 'fullName'),
@@ -89,7 +92,7 @@ void main() {
               email: any(named: 'email'),
               password: any(named: 'password'),
               cancelToken: any(named: 'cancelToken'),
-            )).thenAnswer((_) async => 'access-token-123');
+            )).thenAnswer((_) async => testTokens);
 
         when(() => remote.getMe(
               cancelToken: any(named: 'cancelToken'),
@@ -116,7 +119,11 @@ void main() {
               cancelToken: null,
             )).called(1);
 
-        verify(() => sessionLocal.saveAccessToken('access-token-123'))
+        verify(() => sessionLocal.saveAccessToken(testTokens.accessToken))
+            .called(1);
+        verify(() => sessionLocal.saveRefreshToken(testTokens.refreshToken))
+            .called(1);
+        verify(() => sessionLocal.saveExpiresAt(testTokens.expiresAt))
             .called(1);
 
         verify(() => remote.getMe(cancelToken: null)).called(1);
@@ -163,7 +170,10 @@ void main() {
             ));
 
         verifyNever(() => sessionLocal.saveAccessToken(any()));
-        verifyNever(() => remote.getMe(cancelToken: any(named: 'cancelToken')));
+        verifyNever(() => sessionLocal.saveRefreshToken(any()));
+        verifyNever(() => sessionLocal.saveExpiresAt(any()));
+        verifyNever(
+            () => remote.getMe(cancelToken: any(named: 'cancelToken')));
         verifyNever(() => userIdLocal.saveUserId(any()));
       },
     );
@@ -171,13 +181,13 @@ void main() {
 
   group('login', () {
     test(
-      'login success -> login -> save token -> getMe -> save userId',
+      'login success -> login -> save tokens -> getMe -> save userId',
       () async {
         when(() => remote.login(
               email: any(named: 'email'),
               password: any(named: 'password'),
               cancelToken: any(named: 'cancelToken'),
-            )).thenAnswer((_) async => 'access-token-xyz');
+            )).thenAnswer((_) async => testTokens);
 
         when(() => remote.getMe(
               cancelToken: any(named: 'cancelToken'),
@@ -196,7 +206,11 @@ void main() {
               cancelToken: null,
             )).called(1);
 
-        verify(() => sessionLocal.saveAccessToken('access-token-xyz'))
+        verify(() => sessionLocal.saveAccessToken(testTokens.accessToken))
+            .called(1);
+        verify(() => sessionLocal.saveRefreshToken(testTokens.refreshToken))
+            .called(1);
+        verify(() => sessionLocal.saveExpiresAt(testTokens.expiresAt))
             .called(1);
 
         verify(() => remote.getMe(cancelToken: null)).called(1);
@@ -217,6 +231,8 @@ void main() {
       );
 
       verifyNever(() => sessionLocal.saveAccessToken(any()));
+      verifyNever(() => sessionLocal.saveRefreshToken(any()));
+      verifyNever(() => sessionLocal.saveExpiresAt(any()));
       verifyNever(() => remote.getMe(cancelToken: any(named: 'cancelToken')));
       verifyNever(() => userIdLocal.saveUserId(any()));
     });

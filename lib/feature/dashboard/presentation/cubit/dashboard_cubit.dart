@@ -1,9 +1,12 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:finance_tracker_app/feature/dashboard/domain/usecases/get_dashboard_data.dart';
 import 'dashboard_state.dart';
 
 class DashboardCubit extends Cubit<DashboardState> {
   final GetDashboardData _getDashboardData;
+
+  CancelToken? _cancelToken;
 
   DashboardCubit({
     required GetDashboardData getDashboardData,
@@ -19,16 +22,30 @@ class DashboardCubit extends Cubit<DashboardState> {
   }) async {
     if (state.isLoading && !force) return;
 
+    // Cancel previous request
+    _cancelToken?.cancel();
+    _cancelToken = CancelToken();
+
     final m = _normalizeMonth(month ?? state.month);
     emit(state.copyWith(isLoading: true, month: m, clearError: true));
 
     try {
-      final data = await _getDashboardData(month: m, recentLimit: recentLimit);
+      final data = await _getDashboardData(
+        month: m,
+        recentLimit: recentLimit,
+        cancelToken: _cancelToken,
+      );
 
       emit(state.copyWith(
         isLoading: false,
         clearError: true,
         data: data,
+      ));
+    } on DioException catch (e) {
+      if (CancelToken.isCancel(e)) return;
+      emit(state.copyWith(
+        isLoading: false,
+        error: e.message ?? 'Request failed',
       ));
     } catch (e) {
       emit(state.copyWith(
@@ -58,5 +75,11 @@ class DashboardCubit extends Cubit<DashboardState> {
 
   void clearError() {
     emit(state.copyWith(clearError: true));
+  }
+
+  @override
+  Future<void> close() {
+    _cancelToken?.cancel();
+    return super.close();
   }
 }

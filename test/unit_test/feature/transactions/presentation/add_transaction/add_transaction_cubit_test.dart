@@ -107,7 +107,7 @@ void main() {
       ],
       verify: (_) {
         verifyNever(() => userIdLocal.getUserId());
-        verifyNever(() => addTx(any()));
+        verifyNever(() => addTx(any(), cancelToken: any(named: 'cancelToken')));
       },
     );
 
@@ -123,7 +123,7 @@ void main() {
       ],
       verify: (_) {
         verifyNever(() => userIdLocal.getUserId());
-        verifyNever(() => addTx(any()));
+        verifyNever(() => addTx(any(), cancelToken: any(named: 'cancelToken')));
       },
     );
 
@@ -164,7 +164,7 @@ void main() {
       ],
       verify: (_) {
         verify(() => userIdLocal.getUserId()).called(1);
-        verifyNever(() => addTx(any()));
+        verifyNever(() => addTx(any(), cancelToken: any(named: 'cancelToken')));
       },
     );
   });
@@ -175,7 +175,7 @@ void main() {
   build: buildCubit,
   setUp: () {
     when(() => userIdLocal.getUserId()).thenAnswer((_) async => 'user_1');
-    when(() => addTx(any())).thenAnswer((_) async {});
+    when(() => addTx(any(), cancelToken: any(named: 'cancelToken'))).thenAnswer((_) async {});
   },
   seed: () => AddTransactionState.initial().copyWith(
     category: incomeCat,
@@ -206,7 +206,7 @@ void main() {
   ],
   verify: (_) {
     final captured =
-        verify(() => addTx(captureAny())).captured.single as TransactionEntity;
+        verify(() => addTx(captureAny(), cancelToken: any(named: 'cancelToken'))).captured.single as TransactionEntity;
 
     expect(captured.userId, 'user_1');
     expect(captured.categoryId, incomeCat.id);
@@ -229,7 +229,7 @@ void main() {
       build: buildCubit,
       setUp: () {
         when(() => userIdLocal.getUserId()).thenAnswer((_) async => 'user_1');
-        when(() => addTx(any())).thenThrow(Exception('boom'));
+        when(() => addTx(any(), cancelToken: any(named: 'cancelToken'))).thenThrow(Exception('boom'));
       },
       seed: () => AddTransactionState.initial().copyWith(
         category: expenseCat,
@@ -255,7 +255,7 @@ void main() {
       ],
       verify: (_) {
         verify(() => userIdLocal.getUserId()).called(1);
-        verify(() => addTx(any())).called(1);
+        verify(() => addTx(any(), cancelToken: any(named: 'cancelToken'))).called(1);
       },
     );
   });

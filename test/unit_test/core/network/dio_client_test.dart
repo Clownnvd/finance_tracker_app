@@ -40,13 +40,16 @@ void main() {
       expect(res.statusCode, 200);
     });
 
-    test('uses anonKey when tokenProvider returns null', () async {
+    test('removes Authorization header when tokenProvider returns null', () async {
       final adapter = MockAdapter();
 
       when(() => adapter.fetch(any(), any(), any())).thenAnswer((invocation) async {
         final options = invocation.positionalArguments[0] as RequestOptions;
 
-        expect(options.headers['Authorization'], 'Bearer anon');
+        // Authorization should be absent when no token is available
+        expect(options.headers['Authorization'], isNull);
+        // apikey should still be present
+        expect(options.headers['apikey'], 'anon');
 
         return _StreamResponseBody('{"ok":true}', 200);
       });

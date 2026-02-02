@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../entities/category_entity.dart';
 import '../repositories/transactions_repository.dart';
 
@@ -6,7 +8,7 @@ class GetCategories {
 
   const GetCategories(this._repo);
 
-  Future<List<CategoryEntity>> call() {
-    return _repo.getCategories();
+  Future<List<CategoryEntity>> call({CancelToken? cancelToken}) {
+    return _repo.getCategories(cancelToken: cancelToken);
   }
 }

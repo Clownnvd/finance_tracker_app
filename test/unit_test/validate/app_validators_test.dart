@@ -1,3 +1,4 @@
+import 'package:finance_tracker_app/core/constants/strings.dart';
 import 'package:finance_tracker_app/core/utils/app_validators.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -6,13 +7,13 @@ void main() {
     test('returns error when email is empty', () {
       final result = AppValidators.email('');
 
-      expect(result, 'Please enter your email');
+      expect(result, AppStrings.emailRequired);
     });
 
     test('returns error when email format is invalid', () {
       final result = AppValidators.email('invalid-email');
 
-      expect(result, 'Email format is invalid');
+      expect(result, AppStrings.invalidEmailFormat);
     });
 
     test('returns null when email is valid', () {
@@ -26,29 +27,42 @@ void main() {
     test('returns error when password is empty', () {
       final result = AppValidators.password('');
 
-      expect(result, 'Please enter your password');
+      expect(result, AppStrings.passwordRequired);
     });
 
     test('returns error when password shorter than 8 chars', () {
-      final result = AppValidators.password('abc123');
+      final result = AppValidators.password('Abc123!');
 
-      expect(result, 'Password must be at least 8 characters');
+      expect(result, AppStrings.passwordMinLength8);
     });
 
-    test('returns error when password has no letter', () {
-      final result = AppValidators.password('12345678');
+    test('returns error when password has no uppercase', () {
+      final result = AppValidators.password('abcd1234!');
 
-      expect(result, 'Password must include letter');
+      expect(result, AppStrings.passwordNeedUppercase);
+    });
+
+    test('returns error when password has no lowercase', () {
+      final result = AppValidators.password('ABCD1234!');
+
+      expect(result, AppStrings.passwordNeedLowercase);
     });
 
     test('returns error when password has no number', () {
-      final result = AppValidators.password('abcdefgh');
+      final result = AppValidators.password('Abcdefgh!');
 
-      expect(result, 'Password must include number');
+      expect(result, AppStrings.passwordNeedNumber);
+    });
+
+    test('returns error when password has no special char', () {
+      final result = AppValidators.password('Abcd1234');
+
+      expect(result, AppStrings.passwordNeedSpecialChar);
     });
 
     test('returns null when password strong enough', () {
-      final result = AppValidators.password('abc12345');
+      // Password with uppercase, lowercase, number, and special char
+      final result = AppValidators.password('Abcd1234!');
 
       expect(result, isNull);
     });
@@ -56,19 +70,19 @@ void main() {
 
   group('AppValidators.confirmPassword', () {
     test('returns error when confirm is empty', () {
-      final result = AppValidators.confirmPassword('', 'abc12345');
+      final result = AppValidators.confirmPassword('', 'Abcd1234!');
 
-      expect(result, 'Please confirm your password');
+      expect(result, AppStrings.confirmPasswordRequired);
     });
 
     test('returns error when passwords do not match', () {
-      final result = AppValidators.confirmPassword('abc12345', 'abc123456');
+      final result = AppValidators.confirmPassword('Abcd1234!', 'Abcd12345!');
 
-      expect(result, 'Password does not match');
+      expect(result, AppStrings.passwordNotMatch);
     });
 
     test('returns null when passwords match', () {
-      final result = AppValidators.confirmPassword('abc12345', 'abc12345');
+      final result = AppValidators.confirmPassword('Abcd1234!', 'Abcd1234!');
 
       expect(result, isNull);
     });

@@ -29,7 +29,7 @@ void main() {
     blocTest<SelectCategoryCubit, SelectCategoryState>(
       'load success: splits categories into expense & income',
       build: () {
-        when(() => getCategories()).thenAnswer((_) async => [expense1, income1, expense2]);
+        when(() => getCategories(cancelToken: any(named: 'cancelToken'))).thenAnswer((_) async => [expense1, income1, expense2]);
         return build(selectedId: 2);
       },
       act: (c) => c.load(),
@@ -45,28 +45,28 @@ void main() {
         ),
       ],
       verify: (_) {
-        verify(() => getCategories()).called(1);
+        verify(() => getCategories(cancelToken: any(named: 'cancelToken'))).called(1);
       },
     );
 
     blocTest<SelectCategoryCubit, SelectCategoryState>(
       'load does nothing when already loading and force=false',
       build: () {
-        when(() => getCategories()).thenAnswer((_) async => [expense1]);
+        when(() => getCategories(cancelToken: any(named: 'cancelToken'))).thenAnswer((_) async => [expense1]);
         return build();
       },
       seed: () => SelectCategoryState.initial().copyWith(isLoading: true),
       act: (c) => c.load(),
       expect: () => <SelectCategoryState>[],
       verify: (_) {
-        verifyNever(() => getCategories());
+        verifyNever(() => getCategories(cancelToken: any(named: 'cancelToken')));
       },
     );
 
     blocTest<SelectCategoryCubit, SelectCategoryState>(
   'load(force=true) runs even if currently loading',
   build: () {
-    when(() => getCategories()).thenAnswer((_) async => [income1]);
+    when(() => getCategories(cancelToken: any(named: 'cancelToken'))).thenAnswer((_) async => [income1]);
     return build();
   },
   seed: () => SelectCategoryState.initial().copyWith(isLoading: true),
@@ -78,7 +78,7 @@ void main() {
         .having((s) => s.income, 'income', [income1])
         .having((s) => s.expense, 'expense', isEmpty),
   ],
-  verify: (_) => verify(() => getCategories()).called(1),
+  verify: (_) => verify(() => getCategories(cancelToken: any(named: 'cancelToken'))).called(1),
 );
 
 
@@ -94,7 +94,7 @@ void main() {
     blocTest<SelectCategoryCubit, SelectCategoryState>(
       'load failure: emits error and isLoading=false',
       build: () {
-        when(() => getCategories()).thenThrow(Exception('boom'));
+        when(() => getCategories(cancelToken: any(named: 'cancelToken'))).thenThrow(Exception('boom'));
         return build();
       },
       act: (c) => c.load(),
@@ -103,7 +103,7 @@ void main() {
         predicate<SelectCategoryState>((s) =>
             s.isLoading == false && (s.error?.isNotEmpty ?? false)),
       ],
-      verify: (_) => verify(() => getCategories()).called(1),
+      verify: (_) => verify(() => getCategories(cancelToken: any(named: 'cancelToken'))).called(1),
     );
   });
 }
